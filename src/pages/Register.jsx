@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Register.css'; // Basic styling replacement
+import { useNavigate, Link } from 'react-router-dom';
+import './Register.css';
 
 export default function Register() {
     const [formData, setFormData] = useState({ username: '', password: '' });
@@ -75,6 +75,10 @@ export default function Register() {
 
                 <button type="submit">Register</button>
             </form>
+
+            <p style={{ marginTop: '20px', textAlign: 'center' }}>
+                Already have an account? <Link to="/login">Sign In</Link>
+            </p>
         </div>
     );
 }
