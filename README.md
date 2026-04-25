@@ -1,16 +1,88 @@
-# React + Vite
+# AhaSpaceUI | Enlightenment Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 frontend for the Enlightenment learning platform.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Framework**: React 19.2.4
+- **Build Tool**: Vite 8.0.1
+- **Routing**: React Router DOM 7.14.0
+- **Linting**: ESLint 9.39.4
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- User registration with form validation
+- JWT-based authentication
+- Protected dashboard routes
+- Responsive design
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+
+- Node.js 20+
+- npm or yarn
+
+### Installation
+
+```bash
+cd AhaSpaceUI
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+The dev server will start on `http://localhost:5173`
+
+### Build
+
+```bash
+npm run build
+```
+
+Output goes to `dist/` directory.
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+## Project Structure
+
+```
+src/
+├── components/     # Reusable UI components
+├── context/        # React context (AuthContext)
+├── pages/          # Route components
+│   ├── Login.jsx
+│   ├── Register.jsx
+│   └── Dashboard.jsx
+├── App.jsx         # Root component with routes
+└── main.jsx        # Entry point
+```
+
+## API Integration
+
+The frontend connects to the Spring Boot backend at `http://localhost:8080`
+
+| Endpoint | Usage |
+|----------|-------|
+| `POST /api/auth/register` | User registration |
+| `POST /api/auth/login` | User login (returns JWT) |
+| `GET /api/auth/me` | Fetch current user |
+
+## ESLint
+
+Run linting:
+```bash
+npm run lint
+```
+
+## Original Vite Template Info
+
+This project was bootstrapped with Vite's React template. See [Vite docs](https://vitejs.dev/) for more.
