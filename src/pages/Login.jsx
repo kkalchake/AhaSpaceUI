@@ -1,13 +1,23 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Register.css';
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [errors, setErrors] = useState({});
+  const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setNotification(location.state.message);
+      // Clear the message from location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -50,6 +60,11 @@ export default function Login() {
   return (
     <div className="register-container">
       <h2>Sign In to AhaSpace</h2>
+      {notification && (
+        <div className="error-banner" style={{ backgroundColor: '#fff3cd', color: '#856404', borderColor: '#ffeaa7' }}>
+          {notification}
+        </div>
+      )}
       {errors.global && <div className="error-banner">{errors.global}</div>}
 
       <form onSubmit={handleSubmit}>

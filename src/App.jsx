@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Chat from './pages/Chat';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function Home() {
@@ -20,6 +21,7 @@ function Home() {
         <div>
           <p>Welcome back, {auth?.username}!</p>
           <button onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
+          <button onClick={() => navigate('/chat')} style={{ marginLeft: '10px' }}>AI Chat</button>
           <button onClick={logout} style={{ marginLeft: '10px' }}>Logout</button>
         </div>
       ) : (
@@ -41,6 +43,11 @@ function AppRoutes() {
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/chat" element={
+        <ProtectedRoute>
+          <Chat />
         </ProtectedRoute>
       } />
     </Routes>
