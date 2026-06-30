@@ -23,6 +23,13 @@ const renderWithAuth = (component) => {
 describe('Chat Component', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    // Default mock handles the sessions fetch that fires on every mount
+    global.fetch = vi.fn((url) => {
+      if (url === 'http://localhost:8080/api/chat/sessions') {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      }
+      return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) })
+    })
   })
 
   it('renders chat interface with input and button', () => {
@@ -34,6 +41,29 @@ describe('Chat Component', () => {
     expect(screen.getByText('Powered by Google Gemini')).toBeInTheDocument()
   })
 
+  it('renders sidebar with new chat button', () => {
+    renderWithAuth(<Chat />)
+    expect(screen.getByText('+ New Chat')).toBeInTheDocument()
+  })
+
+  it('fetches sessions on mount and displays them in sidebar', async () => {
+    global.fetch = vi.fn((url) => {
+      if (url === 'http://localhost:8080/api/chat/sessions') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 1, title: 'Old convo', createdAt: '2024-01-01T00:00:00' }])
+        })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+
+    renderWithAuth(<Chat />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Old convo')).toBeInTheDocument()
+    })
+  })
+
   it('displays empty state message when no messages', () => {
     renderWithAuth(<Chat />)
 
@@ -41,12 +71,15 @@ describe('Chat Component', () => {
   })
 
   it('sends message and displays it in chat history', async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
+    global.fetch = vi.fn((url) => {
+      if (url === 'http://localhost:8080/api/chat/sessions') {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      }
+      return Promise.resolve({
         status: 200,
-        json: () => Promise.resolve({ response: 'AI response', model: 'gemini-2.0-flash' })
+        json: () => Promise.resolve({ response: 'AI response', model: 'gemini-2.0-flash', sessionId: 1, sessionTitle: 'Test' })
       })
-    )
+    })
 
     renderWithAuth(<Chat />)
 
@@ -61,13 +94,16 @@ describe('Chat Component', () => {
     })
   })
 
-  it('calls API with correct message and authorization header', async () => {
-    const fetchMock = vi.fn(() =>
-      Promise.resolve({
+  it('calls API with correct message, sessionId, and authorization header', async () => {
+    const fetchMock = vi.fn((url, options) => {
+      if (url === 'http://localhost:8080/api/chat/sessions') {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      }
+      return Promise.resolve({
         status: 200,
-        json: () => Promise.resolve({ response: 'Test response', model: 'gemini-2.0-flash' })
+        json: () => Promise.resolve({ response: 'Test response', model: 'gemini-2.0-flash', sessionId: 1, sessionTitle: 'Test message' })
       })
-    )
+    })
     global.fetch = fetchMock
 
     renderWithAuth(<Chat />)
@@ -87,19 +123,23 @@ describe('Chat Component', () => {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer test-token'
           },
-          body: JSON.stringify({ message: 'Test message' })
+          // sessionId is null because no session is active when the first message is sent
+          body: JSON.stringify({ message: 'Test message', sessionId: null })
         })
       )
     })
   })
 
   it('displays AI response after receiving it', async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
+    global.fetch = vi.fn((url) => {
+      if (url === 'http://localhost:8080/api/chat/sessions') {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      }
+      return Promise.resolve({
         status: 200,
-        json: () => Promise.resolve({ response: 'AI says hello!', model: 'gemini-2.0-flash' })
+        json: () => Promise.resolve({ response: 'AI says hello!', model: 'gemini-2.0-flash', sessionId: 1, sessionTitle: 'Test' })
       })
-    )
+    })
 
     renderWithAuth(<Chat />)
 
@@ -115,12 +155,15 @@ describe('Chat Component', () => {
   })
 
   it('displays error message when API fails', async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
+    global.fetch = vi.fn((url) => {
+      if (url === 'http://localhost:8080/api/chat/sessions') {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      }
+      return Promise.resolve({
         status: 500,
         json: () => Promise.resolve({ error: 'Server error' })
       })
-    )
+    })
 
     renderWithAuth(<Chat />)
 
@@ -136,16 +179,19 @@ describe('Chat Component', () => {
   })
 
   it('shows loading state while waiting for response', async () => {
-    global.fetch = vi.fn(() =>
-      new Promise((resolve) => {
+    global.fetch = vi.fn((url) => {
+      if (url === 'http://localhost:8080/api/chat/sessions') {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      }
+      return new Promise((resolve) => {
         setTimeout(() => {
           resolve({
             status: 200,
-            json: () => Promise.resolve({ response: 'Delayed response', model: 'gemini-2.0-flash' })
+            json: () => Promise.resolve({ response: 'Delayed response', model: 'gemini-2.0-flash', sessionId: 1, sessionTitle: 'Test' })
           })
         }, 100)
       })
-    )
+    })
 
     renderWithAuth(<Chat />)
 
