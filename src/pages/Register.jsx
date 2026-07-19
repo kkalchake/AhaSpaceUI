@@ -4,10 +4,9 @@ import './Register.css';
 
 export default function Register() {
     const [formData, setFormData] = useState({ username: '', password: '' });
-    const [errors, setErrors] = useState({}); // Stores backend/frontend errors
-    const navigate = useNavigate(); // Replaces Spring's RedirectAttributes
+    const [errors, setErrors] = useState({});
+    const navigate = useNavigate();
 
-    // 1. Client-Side Validation
     const validateForm = () => {
         const newErrors = {};
         if (!formData.username.trim()) newErrors.username = "Username is required";
@@ -21,10 +20,9 @@ export default function Register() {
         const clientErrors = validateForm();
         if (Object.keys(clientErrors).length > 0) {
             setErrors(clientErrors);
-            return; // Stop early, save a network request!
+            return;
         }
 
-        // 2. Network Request to Spring Boot
         try {
             const response = await fetch('http://localhost:8080/api/auth/register', {
                 method: 'POST',
@@ -32,14 +30,12 @@ export default function Register() {
                 body: JSON.stringify(formData)
             });
 
-            // 3. Handle Backend Validation Errors (The JSR 380 mapping)
             if (response.status === 400 || response.status === 409) {
                 const backendErrors = await response.json();
-                setErrors(backendErrors); 
-            } 
-            // 4. Handle Success Redirect
+                setErrors(backendErrors);
+            }
             else if (response.status === 201) {
-                navigate('/?success=true'); // Instant redirect
+                navigate('/?success=true');
             }
         } catch (error) {
             setErrors({ global: "Server is unreachable. Is Spring Boot running?" });
@@ -59,7 +55,6 @@ export default function Register() {
                         value={formData.username}
                         onChange={(e) => setFormData({...formData, username: e.target.value})} 
                     />
-                    {/* Display Field Errors dynamically */}
                     {errors.username && <span className="error-text">{errors.username}</span>}
                 </div>
 

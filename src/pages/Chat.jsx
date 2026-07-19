@@ -23,7 +23,6 @@ export default function Chat() {
     scrollToBottom();
   }, [messages]);
 
-  // Load session list on mount so the sidebar is populated immediately
   useEffect(() => {
     loadSessions();
   }, []);
@@ -53,7 +52,6 @@ export default function Chat() {
       if (res.ok) {
         const data = await res.json();
         setActiveSessionId(data.id);
-        // Map backend message format to the local message format used by the render loop
         setMessages(data.messages.map(m => ({
           id: m.id,
           role: m.role,
@@ -73,6 +71,30 @@ export default function Chat() {
     setActiveSessionId(null);
     setMessages([]);
     setError(null);
+  };
+
+  /*
+   * If the deleted session is the one currently open, reset to a blank
+   * conversation via handleNewSession rather than duplicating that reset
+   * logic here. loadSessions() re-fetches the list either way so the
+   * sidebar drops the deleted row regardless of which session was active.
+   */
+  const handleDeleteSession = async (sessionId) => {
+    if (!window.confirm('Delete this conversation? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/chat/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${auth.token}` }
+      });
+      if (res.ok) {
+        if (sessionId === activeSessionId) handleNewSession();
+        loadSessions();
+      } else {
+        setError('Failed to delete conversation.');
+      }
+    } catch (err) {
+      setError('Network error deleting conversation.');
+    }
   };
 
   const sendMessage = async (e) => {
@@ -112,9 +134,7 @@ export default function Chat() {
           timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, aiMessage]);
-        // Store the session id returned by the backend so subsequent messages continue this session
         setActiveSessionId(data.sessionId);
-        // Refresh the sidebar to show the newly created or updated session
         loadSessions();
       } else if (response.status === 401 || response.status === 403) {
         setError('Session expired. Please log in again.');
@@ -136,6 +156,7 @@ export default function Chat() {
         activeSessionId={activeSessionId}
         onSelectSession={handleSelectSession}
         onNewSession={handleNewSession}
+        onDeleteSession={handleDeleteSession}
         isLoading={sessionsLoading}
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 20px' }}>
