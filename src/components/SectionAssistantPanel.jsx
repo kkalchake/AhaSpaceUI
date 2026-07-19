@@ -37,7 +37,6 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
     scrollToBottom();
   }, [messages]);
 
-  // Load session list on mount so the sidebar is populated immediately
   useEffect(() => {
     loadSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,7 +67,6 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
       if (res.ok) {
         const data = await res.json();
         setActiveSessionId(data.id);
-        // Map backend message format to the local message format used by the render loop
         setMessages(data.messages.map(m => ({
           id: m.id,
           role: m.role,
@@ -88,6 +86,31 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
     setActiveSessionId(null);
     setMessages([]);
     setError(null);
+  };
+
+  /*
+   * Same reset-and-refresh pattern as Chat.jsx's handleDeleteSession: reuse
+   * handleNewSession for the active-session reset instead of duplicating it,
+   * and always re-fetch the list afterward so the sidebar drops the deleted
+   * row. Uses basePath (already scoped to this course/section) rather than
+   * the global /api/chat/sessions endpoint Chat.jsx hits.
+   */
+  const handleDeleteSession = async (sessionId) => {
+    if (!window.confirm('Delete this conversation? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`${basePath}/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${auth.token}` }
+      });
+      if (res.ok) {
+        if (sessionId === activeSessionId) handleNewSession();
+        loadSessions();
+      } else {
+        setError('Failed to delete conversation.');
+      }
+    } catch (err) {
+      setError('Network error deleting conversation.');
+    }
   };
 
   const sendMessage = async (e) => {
@@ -127,9 +150,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
           timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, aiMessage]);
-        // Store the session id returned by the backend so subsequent messages continue this session
         setActiveSessionId(data.sessionId);
-        // Refresh the sidebar to show the newly created or updated session
         loadSessions();
       } else if (response.status === 401 || response.status === 403) {
         setError('Session expired. Please log in again.');
@@ -151,6 +172,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
         activeSessionId={activeSessionId}
         onSelectSession={handleSelectSession}
         onNewSession={handleNewSession}
+        onDeleteSession={handleDeleteSession}
         isLoading={sessionsLoading}
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 20px', minWidth: 0 }}>

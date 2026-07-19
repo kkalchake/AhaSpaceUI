@@ -14,7 +14,6 @@ export default function Login() {
   useEffect(() => {
     if (location.state?.message) {
       setNotification(location.state.message);
-      // Clear the message from location state
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
