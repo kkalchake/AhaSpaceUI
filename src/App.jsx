@@ -4,6 +4,9 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
+import CourseList from './pages/CourseList';
+import CourseSections from './pages/CourseSections';
+import SectionView from './pages/SectionView';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function Home() {
@@ -22,6 +25,7 @@ function Home() {
           <p>Welcome back, {auth?.username}!</p>
           <button onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
           <button onClick={() => navigate('/chat')} style={{ marginLeft: '10px' }}>AI Chat</button>
+          <button onClick={() => navigate('/courses')} style={{ marginLeft: '10px' }}>Courses</button>
           <button onClick={logout} style={{ marginLeft: '10px' }}>Logout</button>
         </div>
       ) : (
@@ -48,6 +52,21 @@ function AppRoutes() {
       <Route path="/chat" element={
         <ProtectedRoute>
           <Chat />
+        </ProtectedRoute>
+      } />
+      <Route path="/courses" element={
+        <ProtectedRoute>
+          <CourseList />
+        </ProtectedRoute>
+      } />
+      <Route path="/courses/:courseId" element={
+        <ProtectedRoute>
+          <CourseSections />
+        </ProtectedRoute>
+      } />
+      <Route path="/courses/:courseId/sections/:sectionId" element={
+        <ProtectedRoute>
+          <SectionView />
         </ProtectedRoute>
       } />
     </Routes>

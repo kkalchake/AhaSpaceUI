@@ -17,6 +17,9 @@ export default function Dashboard() {
         <button onClick={() => navigate('/chat')} style={{ padding: '10px 20px', marginRight: '10px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
           AI Chat
         </button>
+        <button onClick={() => navigate('/courses')} style={{ padding: '10px 20px', marginRight: '10px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+          Courses
+        </button>
         <button onClick={handleLogout} style={{ padding: '10px 20px' }}>
           Logout
         </button>
