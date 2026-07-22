@@ -56,14 +56,14 @@ export default function SectionView() {
 
   return (
     <div style={{ display: 'flex', height: '90vh' }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', borderRight: '1px solid #ddd' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', borderRight: '1px solid var(--border)' }}>
         {error && (
           <div className="error-banner" style={{ marginBottom: '10px' }}>
             {error}
           </div>
         )}
         {isLoading ? (
-          <p style={{ color: '#999' }}>Loading section...</p>
+          <p style={{ color: 'var(--muted)' }}>Loading section...</p>
         ) : section && (
           <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
             {section.content}

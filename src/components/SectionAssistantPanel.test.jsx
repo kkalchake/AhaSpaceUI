@@ -6,7 +6,7 @@ import { AuthContext } from '../context/AuthContext'
 import SectionAssistantPanel from './SectionAssistantPanel'
 
 const mockAuth = {
-  auth: { token: 'test-token', username: 'testuser' },
+  auth: { token: 'test-token', email: 'testuser@example.com' },
   isAuthenticated: true
 }
 

@@ -43,9 +43,9 @@ export default function CourseList() {
       )}
 
       {isLoading ? (
-        <p style={{ color: '#999' }}>Loading courses...</p>
+        <p style={{ color: 'var(--muted)' }}>Loading courses...</p>
       ) : courses.length === 0 ? (
-        !error && <p style={{ color: '#999' }}>No courses available yet.</p>
+        !error && <p style={{ color: 'var(--muted)' }}>No courses available yet.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {courses.map(course => (
@@ -57,11 +57,11 @@ export default function CourseList() {
               <div style={{
                 padding: '15px',
                 borderRadius: '8px',
-                border: '1px solid #ddd',
-                backgroundColor: '#fff'
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--surface)'
               }}>
                 <h3 style={{ margin: '0 0 8px 0' }}>{course.title}</h3>
-                <p style={{ margin: 0, color: '#666' }}>{course.description}</p>
+                <p style={{ margin: 0, color: 'var(--muted)' }}>{course.description}</p>
               </div>
             </Link>
           ))}

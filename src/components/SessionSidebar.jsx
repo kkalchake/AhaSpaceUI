@@ -4,7 +4,7 @@ export default function SessionSidebar({ sessions, activeSessionId, onSelectSess
   return (
     <div style={{
       width: '250px',
-      borderRight: '1px solid #ddd',
+      borderRight: '1px solid var(--border)',
       padding: '10px',
       overflowY: 'auto',
       display: 'flex',
@@ -16,7 +16,7 @@ export default function SessionSidebar({ sessions, activeSessionId, onSelectSess
         style={{
           padding: '8px',
           borderRadius: '6px',
-          backgroundColor: '#007bff',
+          backgroundColor: 'var(--accent)',
           color: '#fff',
           border: 'none',
           cursor: 'pointer',
@@ -25,7 +25,7 @@ export default function SessionSidebar({ sessions, activeSessionId, onSelectSess
       >
         + New Chat
       </button>
-      {isLoading && <p style={{ color: '#999', fontSize: '13px' }}>Loading...</p>}
+      {isLoading && <p style={{ color: 'var(--muted)', fontSize: '13px' }}>Loading...</p>}
       {sessions.map(session => (
         <div
           key={session.id}
@@ -34,8 +34,8 @@ export default function SessionSidebar({ sessions, activeSessionId, onSelectSess
             padding: '8px 10px',
             borderRadius: '6px',
             cursor: 'pointer',
-            backgroundColor: session.id === activeSessionId ? '#e8f0fe' : 'transparent',
-            border: session.id === activeSessionId ? '1px solid #007bff' : '1px solid transparent'
+            backgroundColor: session.id === activeSessionId ? 'var(--accent-bg)' : 'transparent',
+            border: session.id === activeSessionId ? '1px solid var(--accent)' : '1px solid transparent'
           }}
         >
           {/*
@@ -55,7 +55,7 @@ export default function SessionSidebar({ sessions, activeSessionId, onSelectSess
               }}>
                 {session.title}
               </div>
-              <div style={{ fontSize: '11px', color: '#999' }}>
+              <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                 {new Date(session.createdAt).toLocaleDateString()}
               </div>
             </div>
@@ -67,7 +67,7 @@ export default function SessionSidebar({ sessions, activeSessionId, onSelectSess
             <button
               onClick={(e) => { e.stopPropagation(); onDeleteSession(session.id); }}
               aria-label="Delete conversation"
-              style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#c00', fontSize: '13px' }}
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--error)', fontSize: '13px' }}
             >
               ×
             </button>

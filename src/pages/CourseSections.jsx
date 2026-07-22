@@ -46,9 +46,9 @@ export default function CourseSections() {
       )}
 
       {isLoading ? (
-        <p style={{ color: '#999' }}>Loading sections...</p>
+        <p style={{ color: 'var(--muted)' }}>Loading sections...</p>
       ) : sections.length === 0 ? (
-        !error && <p style={{ color: '#999' }}>No sections available yet.</p>
+        !error && <p style={{ color: 'var(--muted)' }}>No sections available yet.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/*
@@ -65,11 +65,11 @@ export default function CourseSections() {
               <div style={{
                 padding: '15px',
                 borderRadius: '8px',
-                border: '1px solid #ddd',
-                backgroundColor: '#fff'
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--surface)'
               }}>
                 <h3 style={{ margin: '0 0 8px 0' }}>Section {index + 1}</h3>
-                <p style={{ margin: 0, color: '#666' }}>
+                <p style={{ margin: 0, color: 'var(--muted)' }}>
                   {section.content.slice(0, 120)}{section.content.length > 120 ? '...' : ''}
                 </p>
               </div>
