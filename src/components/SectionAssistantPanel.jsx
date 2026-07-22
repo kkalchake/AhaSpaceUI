@@ -177,7 +177,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 20px', minWidth: 0 }}>
         <h2>Section Assistant</h2>
-        <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>
+        <p style={{ textAlign: 'center', color: 'var(--muted)', marginBottom: '20px' }}>
           Ask questions about this section
         </p>
 
@@ -190,14 +190,14 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
         <div style={{
           flex: 1,
           overflowY: 'auto',
-          border: '1px solid #ddd',
+          border: '1px solid var(--border)',
           borderRadius: '8px',
           padding: '15px',
           marginBottom: '15px',
-          backgroundColor: '#f9f9f9'
+          backgroundColor: 'var(--bg)'
         }}>
           {messages.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#999', marginTop: '50px' }}>
+            <p style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '50px' }}>
               Ask a question about this section below.
             </p>
           ) : (
@@ -215,9 +215,9 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
                     maxWidth: '85%',
                     padding: '10px 15px',
                     borderRadius: '15px',
-                    backgroundColor: msg.role === 'user' ? '#007bff' : '#fff',
-                    color: msg.role === 'user' ? '#fff' : '#333',
-                    border: msg.role === 'user' ? 'none' : '1px solid #ddd',
+                    backgroundColor: msg.role === 'user' ? 'var(--accent)' : 'var(--surface)',
+                    color: msg.role === 'user' ? '#fff' : 'var(--text-h)',
+                    border: msg.role === 'user' ? 'none' : '1px solid var(--border)',
                     whiteSpace: msg.role === 'user' ? 'pre-wrap' : 'normal',
                     wordWrap: 'break-word',
                     textAlign: 'left'
@@ -237,7 +237,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
                     msg.content
                   )}
                 </div>
-                <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '5px' }}>
                   {msg.role === 'assistant' && msg.model && (
                     <span>{msg.model} • </span>
                   )}
@@ -252,9 +252,9 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
                 display: 'inline-block',
                 padding: '10px 15px',
                 borderRadius: '15px',
-                backgroundColor: '#fff',
-                border: '1px solid #ddd',
-                color: '#666'
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--border)',
+                color: 'var(--muted)'
               }}>
                 Thinking...
               </div>
@@ -270,7 +270,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
             disabled={isLoading}
-            style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }}
+            style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}
           />
           <button
             type="submit"
@@ -278,7 +278,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
             style={{
               padding: '12px 24px',
               borderRadius: '8px',
-              backgroundColor: isLoading ? '#ccc' : '#007bff',
+              backgroundColor: isLoading ? 'var(--border)' : 'var(--accent)',
               color: '#fff',
               border: 'none',
               cursor: isLoading ? 'not-allowed' : 'pointer'

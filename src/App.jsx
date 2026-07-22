@@ -1,37 +1,39 @@
-import { Routes, Route, Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Register from './pages/Register';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
 import CourseList from './pages/CourseList';
 import CourseSections from './pages/CourseSections';
 import SectionView from './pages/SectionView';
 import ProtectedRoute from './components/ProtectedRoute';
+import NavBar from './components/NavBar';
+import './pages/Auth.css';
 
 function Home() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { isAuthenticated, auth, logout } = useAuth();
-  const isSuccess = searchParams.get('success');
 
   return (
-    <div style={{ textAlign: 'center', padding: '50px' }}>
-      <h1>Welcome to AhaSpace</h1>
-      {isSuccess && <h3 style={{ color: 'green' }}>Registration Successful! Please log in.</h3>}
-      
+    <div className="auth-page">
+      <h1 className="welcome-heading">Welcome to AhaSpace</h1>
+
       {isAuthenticated ? (
-        <div>
-          <p>Welcome back, {auth?.username}!</p>
-          <button onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
-          <button onClick={() => navigate('/chat')} style={{ marginLeft: '10px' }}>AI Chat</button>
-          <button onClick={() => navigate('/courses')} style={{ marginLeft: '10px' }}>Courses</button>
-          <button onClick={logout} style={{ marginLeft: '10px' }}>Logout</button>
+        <div className="auth-hero">
+          <p className="hero-subtext">Welcome back, {auth?.email}!</p>
+          <div className="hero-actions">
+            <button className="btn-secondary" onClick={() => navigate('/chat')}>AI Chat</button>
+            <button className="btn-secondary" onClick={() => navigate('/courses')}>Courses</button>
+            <button className="btn-secondary" onClick={logout}>Logout</button>
+          </div>
         </div>
       ) : (
-        <div>
-          <Link to="/register"><button style={{ marginRight: '10px' }}>Register</button></Link>
-          <Link to="/login"><button>Sign In</button></Link>
+        <div className="auth-hero">
+          <p className="hero-subtext">Sign in to keep going, or create an account to get started.</p>
+          <Link to="/login" className="btn-primary">Sign In</Link>
+          <p className="hero-secondary-link">
+            New to AhaSpace? <Link to="/register">Create an account</Link>
+          </p>
         </div>
       )}
     </div>
@@ -40,36 +42,34 @@ function Home() {
 
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/chat" element={
-        <ProtectedRoute>
-          <Chat />
-        </ProtectedRoute>
-      } />
-      <Route path="/courses" element={
-        <ProtectedRoute>
-          <CourseList />
-        </ProtectedRoute>
-      } />
-      <Route path="/courses/:courseId" element={
-        <ProtectedRoute>
-          <CourseSections />
-        </ProtectedRoute>
-      } />
-      <Route path="/courses/:courseId/sections/:sectionId" element={
-        <ProtectedRoute>
-          <SectionView />
-        </ProtectedRoute>
-      } />
-    </Routes>
+    <>
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/chat" element={
+          <ProtectedRoute>
+            <Chat />
+          </ProtectedRoute>
+        } />
+        <Route path="/courses" element={
+          <ProtectedRoute>
+            <CourseList />
+          </ProtectedRoute>
+        } />
+        <Route path="/courses/:courseId" element={
+          <ProtectedRoute>
+            <CourseSections />
+          </ProtectedRoute>
+        } />
+        <Route path="/courses/:courseId/sections/:sectionId" element={
+          <ProtectedRoute>
+            <SectionView />
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </>
   );
 }
 

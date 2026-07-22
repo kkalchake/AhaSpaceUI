@@ -5,19 +5,19 @@ export const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [auth, setAuth] = useState(() => {
     const token = localStorage.getItem('token');
-    const username = localStorage.getItem('username');
-    return token ? { token, username } : null;
+    const email = localStorage.getItem('email');
+    return token ? { token, email } : null;
   });
 
-  const login = useCallback((token, username) => {
+  const login = useCallback((token, email) => {
     localStorage.setItem('token', token);
-    localStorage.setItem('username', username);
-    setAuth({ token, username });
+    localStorage.setItem('email', email);
+    setAuth({ token, email });
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
-    localStorage.removeItem('username');
+    localStorage.removeItem('email');
     setAuth(null);
   }, []);
 

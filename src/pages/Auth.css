@@ -1,0 +1,330 @@
+/*
+ * Shared styling for the unauthenticated surface: the landing hero (Home,
+ * unauthenticated branch), Login, and Register. Everything is scoped under
+ * .auth-page so importing this file can never restyle unrelated parts of the
+ * app (e.g. Home's authenticated nav buttons, which intentionally opt out by
+ * not carrying .btn-primary/.btn-secondary).
+ */
+
+.auth-page {
+  --paper: #f6f5ef;
+  --ink: #2f322c;
+  --accent: #4f7a78;
+  --accent-deep: #3f635f;
+  --accent-soft: #dde6e4;
+  --accent-border: #c3d3d1;
+  --muted: #6b6d61;
+  --error: #9c4830;
+  --error-bg: #f6e8e3;
+
+  box-sizing: border-box;
+  min-height: 100svh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 4vw, 32px);
+  padding:
+    calc(clamp(24px, 6vw, 64px) + env(safe-area-inset-top, 0px))
+    clamp(16px, 5vw, 32px)
+    calc(clamp(24px, 6vw, 64px) + env(safe-area-inset-bottom, 0px));
+  position: relative;
+  overflow-x: hidden;
+  background: var(--paper);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.auth-page *,
+.auth-page *::before,
+.auth-page *::after {
+  box-sizing: border-box;
+}
+
+.welcome-heading {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(28px, 4vw + 12px, 46px);
+  line-height: 1.15;
+  letter-spacing: normal;
+  margin: 0;
+  text-align: center;
+  color: var(--ink);
+}
+
+.hero-subtext {
+  max-width: 34ch;
+  margin: -8px auto 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: clamp(14px, 1.4vw + 10px, 16px);
+  line-height: 1.5;
+}
+
+.auth-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hero-secondary-link {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* Card shared by Login and Register */
+.register-container {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: clamp(24px, 5vw, 36px);
+  box-shadow: 0 1px 2px rgba(47, 50, 44, 0.04), 0 12px 24px -14px rgba(47, 50, 44, 0.14);
+  border: 1px solid rgba(47, 50, 44, 0.06);
+  position: relative;
+  z-index: 1;
+  animation: auth-card-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes auth-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .register-container {
+    animation: none;
+  }
+}
+
+.register-container h2 {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+  margin: 0 0 22px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  /* 16px stops iOS Safari from auto-zooming the viewport on focus */
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--accent-soft);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.form-group input::placeholder {
+  color: var(--muted);
+}
+
+.form-group input:hover {
+  border-color: var(--accent-border);
+}
+
+.form-group input:focus {
+  background: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(79, 122, 120, 0.12);
+}
+
+/* Primary call to action: the submit buttons on Login/Register, and the
+   Sign In link on the landing hero (an <a> styled to match, since it's a
+   navigation, not a form submission). */
+.auth-page .btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 13px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #ffffff;
+  text-decoration: none;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.auth-page .btn-primary:hover {
+  background: var(--accent-deep);
+  color: #ffffff;
+}
+
+/* Landing hero's own Sign In link is larger and unconstrained by a card,
+   so it reads as the dominant element on the page rather than a form field. */
+.auth-hero > .btn-primary {
+  width: auto;
+  min-width: 200px;
+  padding: 16px 40px;
+  font-size: 17px;
+  margin-top: 4px;
+}
+
+.btn-secondary {
+  min-height: 40px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--accent-deep);
+  background: var(--accent-soft);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--accent-border);
+}
+
+.auth-page a {
+  color: var(--accent-deep);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-page a:hover {
+  text-decoration: underline;
+}
+
+.auth-page button:focus-visible,
+.auth-page a:focus-visible,
+.auth-page input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Error and notice states */
+.error-banner {
+  background-color: var(--error-bg);
+  color: var(--error);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.error-text {
+  color: var(--error);
+  font-size: 14px;
+}
+
+.form-error {
+  color: var(--error);
+  font-size: 14px;
+  text-align: center;
+  margin-top: 14px;
+}
+
+/* Shake animation: brief horizontal oscillation on failed login, giving
+   non-verbal feedback that the submission was rejected. */
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+
+.register-container.shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Compact phones: tighten spacing further than clamp() alone reaches */
+@media (max-width: 360px) {
+  .register-container {
+    border-radius: 12px;
+  }
+
+  .auth-page .btn-primary,
+  .register-container h2 {
+    margin-top: 4px;
+  }
+}
+
+/* Give the hero a bit more room to breathe once there's space for it */
+@media (min-width: 1024px) {
+  .auth-page {
+    gap: 40px;
+  }
+
+  .register-container {
+    padding: 40px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-page {
+    --paper: #1e211f;
+    --ink: #eceae2;
+    --accent: #7fa3a0;
+    --accent-deep: #92b3b0;
+    --accent-soft: #2c3634;
+    --accent-border: #3d4b48;
+    --muted: #a3a89b;
+    --error: #d98467;
+    --error-bg: #3a2620;
+
+    background: var(--paper);
+  }
+
+  .register-container {
+    background: #262924;
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 24px -14px rgba(0, 0, 0, 0.4);
+  }
+
+  .form-group input {
+    background: #1e211f;
+  }
+
+  .form-group input:focus {
+    background: #22261f;
+  }
+
+  .auth-page .btn-primary {
+    color: #1e211f;
+  }
+}
