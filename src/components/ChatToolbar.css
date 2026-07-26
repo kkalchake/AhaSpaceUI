@@ -1,0 +1,111 @@
+.chat-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.btn-new-chat {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.history-dropdown {
+  position: relative;
+}
+
+.history-toggle {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.history-toggle:hover {
+  border-color: var(--accent-border);
+}
+
+.history-panel {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 10;
+  width: 260px;
+  max-width: 80vw;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 8px;
+}
+
+.history-panel.open {
+  display: flex;
+}
+
+.history-empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 8px;
+  margin: 0;
+}
+
+.history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-align: left;
+}
+
+.history-row:hover {
+  background: var(--accent-bg);
+}
+
+.history-row.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.history-title {
+  font-weight: 500;
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.history-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.history-delete {
+  flex-shrink: 0;
+  margin-left: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--error);
+  font-size: 13px;
+}

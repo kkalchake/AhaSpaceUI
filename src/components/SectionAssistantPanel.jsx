@@ -1,23 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
 import { useAuth } from '../context/AuthContext';
-import SessionSidebar from './SessionSidebar';
+import ChatToolbar from './ChatToolbar';
+import MessageBubble, { ThinkingIndicator } from './MessageBubble';
 import { API_BASE_URL } from '../config';
+import './SectionAssistantPanel.css';
 
 /*
  * SectionAssistantPanel reuses Chat.jsx's fetch/send/session-switch logic,
  * but scopes every request to a single course section instead of the
- * account-wide /api/chat endpoints. courseId/sectionId are passed in as
- * props (rather than read from useParams here) so this component stays a
+ * account-wide /api/chat endpoints. courseId/phaseId/sectionId are passed in
+ * as props (rather than read from useParams here) so this component stays a
  * plain, reusable panel and SectionView owns the routing concerns.
  *
  * This component is only ever mounted inside SectionView, which is what
  * satisfies the "assistant appears only on a section content page"
  * requirement — there's no separate route that renders it standalone.
  */
-export default function SectionAssistantPanel({ courseId, sectionId }) {
+export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +27,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
   const messagesEndRef = useRef(null);
   const { auth } = useAuth();
 
-  const basePath = `${API_BASE_URL}/api/courses/${courseId}/sections/${sectionId}/chat`;
+  const basePath = `${API_BASE_URL}/api/courses/${courseId}/phases/${phaseId}/sections/${sectionId}/chat`;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,7 +40,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
   useEffect(() => {
     loadSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, sectionId]);
+  }, [courseId, phaseId, sectionId]);
 
   const loadSessions = async () => {
     setSessionsLoading(true);
@@ -167,8 +166,13 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100%' }}>
-      <SessionSidebar
+    <div className="section-assistant-main">
+      <h2>Section Assistant</h2>
+      <p style={{ textAlign: 'center', color: 'var(--muted)', marginBottom: '20px' }}>
+        Ask questions about this section
+      </p>
+
+      <ChatToolbar
         sessions={sessions}
         activeSessionId={activeSessionId}
         onSelectSession={handleSelectSession}
@@ -176,91 +180,35 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
         onDeleteSession={handleDeleteSession}
         isLoading={sessionsLoading}
       />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 20px', minWidth: 0 }}>
-        <h2>Section Assistant</h2>
-        <p style={{ textAlign: 'center', color: 'var(--muted)', marginBottom: '20px' }}>
-          Ask questions about this section
-        </p>
 
-        {error && (
+      {error && (
           <div className="error-banner" style={{ marginBottom: '10px' }}>
             {error}
           </div>
         )}
 
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          border: '1px solid var(--border)',
-          borderRadius: '8px',
-          padding: '15px',
-          marginBottom: '15px',
-          backgroundColor: 'var(--bg)'
-        }}>
+        <div
+          className="chat-message-list"
+          role="log"
+          aria-live="polite"
+          aria-label="Section assistant messages"
+        >
           {messages.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '50px' }}>
               Ask a question about this section below.
             </p>
           ) : (
             messages.map((msg) => (
-              <div
+              <MessageBubble
                 key={msg.id}
-                style={{
-                  marginBottom: '15px',
-                  textAlign: msg.role === 'user' ? 'right' : 'left'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-block',
-                    maxWidth: '85%',
-                    padding: '10px 15px',
-                    borderRadius: '15px',
-                    backgroundColor: msg.role === 'user' ? 'var(--accent)' : 'var(--surface)',
-                    color: msg.role === 'user' ? '#fff' : 'var(--text-h)',
-                    border: msg.role === 'user' ? 'none' : '1px solid var(--border)',
-                    whiteSpace: msg.role === 'user' ? 'pre-wrap' : 'normal',
-                    wordWrap: 'break-word',
-                    textAlign: 'left'
-                  }}
-                >
-                  {/*
-                    User bubbles render as plain text: they store only the raw
-                    question, so Markdown parsing would just be wasted work.
-                    Assistant bubbles run through ReactMarkdown for formatting
-                    parity with the lecture-notes panel (headings, math, etc.).
-                  */}
-                  {msg.role === 'assistant' ? (
-                    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                      {msg.content}
-                    </ReactMarkdown>
-                  ) : (
-                    msg.content
-                  )}
-                </div>
-                <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '5px' }}>
-                  {msg.role === 'assistant' && msg.model && (
-                    <span>{msg.model} • </span>
-                  )}
-                  {new Date(msg.timestamp).toLocaleTimeString()}
-                </div>
-              </div>
+                role={msg.role}
+                content={msg.content}
+                model={msg.model}
+                timestamp={msg.timestamp}
+              />
             ))
           )}
-          {isLoading && (
-            <div style={{ textAlign: 'left', marginBottom: '15px' }}>
-              <div style={{
-                display: 'inline-block',
-                padding: '10px 15px',
-                borderRadius: '15px',
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                color: 'var(--muted)'
-              }}>
-                Thinking...
-              </div>
-            </div>
-          )}
+          {isLoading && <ThinkingIndicator />}
           <div ref={messagesEndRef} />
         </div>
 
@@ -270,6 +218,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
+            aria-label="Type your message"
             disabled={isLoading}
             style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}
           />
@@ -288,7 +237,6 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
             {isLoading ? 'Sending...' : 'Send'}
           </button>
         </form>
-      </div>
     </div>
   );
 }

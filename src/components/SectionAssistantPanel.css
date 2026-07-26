@@ -1,0 +1,7 @@
+.section-assistant-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 20px;
+  min-width: 0;
+}
