@@ -11,7 +11,7 @@ const mockAuth = {
   isAuthenticated: true
 }
 
-const BASE = `${API_BASE_URL}/api/courses/1/sections/2/chat`
+const BASE = `${API_BASE_URL}/api/courses/1/phases/3/sections/2/chat`
 
 const renderWithAuth = (component) => {
   return render(
@@ -36,7 +36,7 @@ describe('SectionAssistantPanel Component', () => {
   })
 
   it('renders assistant panel with input and button', () => {
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     expect(screen.getByText('Section Assistant')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Type your message...')).toBeInTheDocument()
@@ -44,7 +44,7 @@ describe('SectionAssistantPanel Component', () => {
   })
 
   it('renders sidebar with new chat button', () => {
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
     expect(screen.getByText('+ New Chat')).toBeInTheDocument()
   })
 
@@ -60,7 +60,7 @@ describe('SectionAssistantPanel Component', () => {
     })
     global.fetch = fetchMock
 
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     await waitFor(() => {
       expect(screen.getByText('Old convo')).toBeInTheDocument()
@@ -72,13 +72,13 @@ describe('SectionAssistantPanel Component', () => {
   })
 
   it('displays empty state message when no messages', () => {
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     expect(screen.getByText(/ask a question about this section/i)).toBeInTheDocument()
   })
 
   it('disables send button when input is empty', () => {
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     const sendButton = screen.getByRole('button', { name: /send/i })
     expect(sendButton).toBeDisabled()
@@ -95,7 +95,7 @@ describe('SectionAssistantPanel Component', () => {
       })
     })
 
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     const input = screen.getByPlaceholderText('Type your message...')
     const sendButton = screen.getByRole('button', { name: /send/i })
@@ -120,7 +120,7 @@ describe('SectionAssistantPanel Component', () => {
     })
     global.fetch = fetchMock
 
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     const input = screen.getByPlaceholderText('Type your message...')
     const sendButton = screen.getByRole('button', { name: /send/i })
@@ -155,7 +155,7 @@ describe('SectionAssistantPanel Component', () => {
       })
     })
 
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     const input = screen.getByPlaceholderText('Type your message...')
     const sendButton = screen.getByRole('button', { name: /send/i })
@@ -179,7 +179,7 @@ describe('SectionAssistantPanel Component', () => {
       })
     })
 
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     const input = screen.getByPlaceholderText('Type your message...')
     const sendButton = screen.getByRole('button', { name: /send/i })
@@ -207,7 +207,7 @@ describe('SectionAssistantPanel Component', () => {
       })
     })
 
-    renderWithAuth(<SectionAssistantPanel courseId={1} sectionId={2} />)
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     const input = screen.getByPlaceholderText('Type your message...')
     const sendButton = screen.getByRole('button', { name: /send/i })

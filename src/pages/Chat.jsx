@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import SessionSidebar from '../components/SessionSidebar';
+import ChatToolbar from '../components/ChatToolbar';
+import MessageBubble, { ThinkingIndicator } from '../components/MessageBubble';
 import { API_BASE_URL } from '../config';
 import './Auth.css';
+import './Chat.css';
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
@@ -151,20 +153,21 @@ export default function Chat() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '80vh', maxWidth: '1100px', margin: '0 auto' }}>
-      <SessionSidebar
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={handleSelectSession}
-        onNewSession={handleNewSession}
-        onDeleteSession={handleDeleteSession}
-        isLoading={sessionsLoading}
-      />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 20px' }}>
+    <div className="chat-layout">
+      <div className="chat-main">
         <h2>AI Chat</h2>
         <p style={{ textAlign: 'center', color: 'var(--muted)', marginBottom: '20px' }}>
           Powered by Google Gemini
         </p>
+
+        <ChatToolbar
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={handleSelectSession}
+          onNewSession={handleNewSession}
+          onDeleteSession={handleDeleteSession}
+          isLoading={sessionsLoading}
+        />
 
         {error && (
           <div className="error-banner" style={{ marginBottom: '10px' }}>
@@ -172,66 +175,28 @@ export default function Chat() {
           </div>
         )}
 
-        <div style={{
-          flex: 1,
-          overflowY: 'auto',
-          border: '1px solid var(--border)',
-          borderRadius: '8px',
-          padding: '15px',
-          marginBottom: '15px',
-          backgroundColor: 'var(--bg)'
-        }}>
+        <div
+          className="chat-message-list"
+          role="log"
+          aria-live="polite"
+          aria-label="Chat messages"
+        >
           {messages.length === 0 ? (
             <p style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '50px' }}>
               Start a conversation by sending a message below.
             </p>
           ) : (
             messages.map((msg) => (
-              <div
+              <MessageBubble
                 key={msg.id}
-                style={{
-                  marginBottom: '15px',
-                  textAlign: msg.role === 'user' ? 'right' : 'left'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'inline-block',
-                    maxWidth: '70%',
-                    padding: '10px 15px',
-                    borderRadius: '15px',
-                    backgroundColor: msg.role === 'user' ? 'var(--accent)' : 'var(--surface)',
-                    color: msg.role === 'user' ? '#fff' : 'var(--text-h)',
-                    border: msg.role === 'user' ? 'none' : '1px solid var(--border)',
-                    whiteSpace: 'pre-wrap',
-                    wordWrap: 'break-word'
-                  }}
-                >
-                  {msg.content}
-                </div>
-                <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '5px' }}>
-                  {msg.role === 'assistant' && msg.model && (
-                    <span>{msg.model} • </span>
-                  )}
-                  {new Date(msg.timestamp).toLocaleTimeString()}
-                </div>
-              </div>
+                role={msg.role}
+                content={msg.content}
+                model={msg.model}
+                timestamp={msg.timestamp}
+              />
             ))
           )}
-          {isLoading && (
-            <div style={{ textAlign: 'left', marginBottom: '15px' }}>
-              <div style={{
-                display: 'inline-block',
-                padding: '10px 15px',
-                borderRadius: '15px',
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                color: 'var(--muted)'
-              }}>
-                Thinking...
-              </div>
-            </div>
-          )}
+          {isLoading && <ThinkingIndicator />}
           <div ref={messagesEndRef} />
         </div>
 
@@ -241,6 +206,7 @@ export default function Chat() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
+            aria-label="Type your message"
             disabled={isLoading}
             style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}
           />

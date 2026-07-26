@@ -4,7 +4,8 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Chat from './pages/Chat';
 import CourseList from './pages/CourseList';
-import CourseSections from './pages/CourseSections';
+import CoursePhases from './pages/CoursePhases';
+import PhaseSections from './pages/PhaseSections';
 import SectionView from './pages/SectionView';
 import ProtectedRoute from './components/ProtectedRoute';
 import NavBar from './components/NavBar';
@@ -60,10 +61,15 @@ function AppRoutes() {
         } />
         <Route path="/courses/:courseId" element={
           <ProtectedRoute>
-            <CourseSections />
+            <CoursePhases />
           </ProtectedRoute>
         } />
-        <Route path="/courses/:courseId/sections/:sectionId" element={
+        <Route path="/courses/:courseId/phases/:phaseId" element={
+          <ProtectedRoute>
+            <PhaseSections />
+          </ProtectedRoute>
+        } />
+        <Route path="/courses/:courseId/phases/:phaseId/sections/:sectionId" element={
           <ProtectedRoute>
             <SectionView />
           </ProtectedRoute>

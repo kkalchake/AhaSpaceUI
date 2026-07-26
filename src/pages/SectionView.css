@@ -1,0 +1,305 @@
+.section-view {
+  display: flex;
+  height: 90vh;
+}
+
+.section-content {
+  position: relative;
+  flex-grow: 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding: 20px;
+  min-width: 0;
+}
+
+/* Collapsible "all sections in this phase" panel: an overlay/flyout anchored
+   to the top-left of the content pane, not a real column, so it never
+   disturbs the course/chat drag-resize split above. */
+.section-list-toggle {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.section-list-toggle:hover {
+  border-color: var(--accent-border);
+}
+
+.section-list-panel {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  position: absolute;
+  top: 44px;
+  left: 20px;
+  z-index: 2;
+  width: min(280px, calc(100% - 40px));
+  max-height: calc(100% - 64px);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 8px;
+}
+
+.section-list-panel.open {
+  display: flex;
+}
+
+.section-list-row {
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-h);
+  font: inherit;
+  cursor: pointer;
+}
+
+.section-list-row:hover {
+  background: var(--accent-bg);
+}
+
+.section-list-row.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.section-divider {
+  flex: 0 0 8px;
+  cursor: col-resize;
+  position: relative;
+  background: var(--border);
+}
+
+.section-divider:hover,
+.section-divider:focus-visible {
+  background: var(--accent-border);
+  outline: none;
+}
+
+.section-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+  background: var(--muted);
+}
+
+.section-chat {
+  flex-grow: 0;
+  flex-shrink: 0;
+  overflow-y: hidden;
+  min-width: 0;
+  position: relative;
+}
+
+.section-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.section-content > .section-nav:last-child {
+  margin-bottom: 0;
+  margin-top: 20px;
+}
+
+.section-nav-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.section-nav-btn:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.section-nav-btn:not(:disabled):hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.section-nav-progress {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Section reading content: overrides the app-wide h1/h2 rules in index.css
+   (56px/24px, meant for page titles) down to sizes that fit inline within a
+   reading pane, and adds rules for the elements index.css doesn't style at
+   all (h3-h6, lists, blockquote, table, pre/code, links, images). */
+.section-markdown {
+  text-align: left;
+}
+
+.section-markdown h1,
+.section-markdown h2,
+.section-markdown h3,
+.section-markdown h4,
+.section-markdown h5,
+.section-markdown h6 {
+  text-align: left;
+  color: var(--text-h);
+  font-family: var(--heading);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.section-markdown h1 { font-size: 30px; margin: 0 0 16px; }
+.section-markdown h2 { font-size: 24px; margin: 28px 0 12px; }
+.section-markdown h3 { font-size: 20px; margin: 24px 0 10px; }
+.section-markdown h4,
+.section-markdown h5,
+.section-markdown h6 { font-size: 17px; margin: 20px 0 8px; }
+
+.section-markdown h1:first-child,
+.section-markdown h2:first-child,
+.section-markdown h3:first-child {
+  margin-top: 0;
+}
+
+.section-markdown p {
+  margin: 0 0 14px;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.section-markdown ul,
+.section-markdown ol {
+  margin: 0 0 14px;
+  padding-left: 24px;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.section-markdown li {
+  margin-bottom: 6px;
+}
+
+.section-markdown li > ul,
+.section-markdown li > ol {
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.section-markdown blockquote {
+  margin: 16px 0;
+  padding: 6px 16px;
+  border-left: 4px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--muted);
+}
+
+.section-markdown blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.section-markdown table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 15px;
+}
+
+.section-markdown th,
+.section-markdown td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.section-markdown th {
+  background: var(--code-bg);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.section-markdown pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  overflow-x: auto;
+  margin: 16px 0;
+  text-align: left;
+}
+
+.section-markdown pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.section-markdown a {
+  color: var(--accent);
+}
+
+.section-markdown a:hover {
+  color: var(--accent-hover);
+}
+
+.section-markdown img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.section-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 24px 0;
+}
+
+@media (max-width: 768px) {
+  .section-view {
+    flex-direction: column;
+    height: auto;
+  }
+
+  /* Dragging a horizontal split doesn't translate to a stacked layout, so
+     the divider is hidden and both panes fall back to a fixed height each
+     instead of the user's saved splitRatio. */
+  .section-divider {
+    display: none;
+  }
+
+  .section-content {
+    flex-basis: auto !important;
+    border-bottom: 1px solid var(--border);
+    max-height: 60vh;
+  }
+
+  .section-chat {
+    flex-basis: auto !important;
+    height: 70vh;
+  }
+}
