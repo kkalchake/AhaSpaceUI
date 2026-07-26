@@ -4,13 +4,14 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import SectionAssistantPanel from './SectionAssistantPanel'
+import { API_BASE_URL } from '../config'
 
 const mockAuth = {
   auth: { token: 'test-token', email: 'testuser@example.com' },
   isAuthenticated: true
 }
 
-const BASE = 'http://localhost:8080/api/courses/1/sections/2/chat'
+const BASE = `${API_BASE_URL}/api/courses/1/sections/2/chat`
 
 const renderWithAuth = (component) => {
   return render(

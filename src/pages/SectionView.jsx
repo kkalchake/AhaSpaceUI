@@ -6,6 +6,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { useAuth } from '../context/AuthContext';
 import SectionAssistantPanel from '../components/SectionAssistantPanel';
+import { API_BASE_URL } from '../config';
 
 /*
  * There is no GET /sections/{id} endpoint. The Week-9 contract only exposes
@@ -27,7 +28,7 @@ export default function SectionView() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:8080/api/courses/${courseId}/sections`, {
+        const res = await fetch(`${API_BASE_URL}/api/courses/${courseId}/sections`, {
           headers: { 'Authorization': `Bearer ${auth.token}` }
         });
         if (res.ok) {

@@ -4,6 +4,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import Chat from './Chat'
+import { API_BASE_URL } from '../config'
+
+const SESSIONS_URL = `${API_BASE_URL}/api/chat/sessions`
+const CHAT_URL = `${API_BASE_URL}/api/chat`
 
 const mockAuth = {
   auth: { token: 'test-token', email: 'testuser@example.com' },
@@ -25,7 +29,7 @@ describe('Chat Component', () => {
     vi.restoreAllMocks()
     // Default mock handles the sessions fetch that fires on every mount
     global.fetch = vi.fn((url) => {
-      if (url === 'http://localhost:8080/api/chat/sessions') {
+      if (url === SESSIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
       }
       return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) })
@@ -48,7 +52,7 @@ describe('Chat Component', () => {
 
   it('fetches sessions on mount and displays them in sidebar', async () => {
     global.fetch = vi.fn((url) => {
-      if (url === 'http://localhost:8080/api/chat/sessions') {
+      if (url === SESSIONS_URL) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve([{ id: 1, title: 'Old convo', createdAt: '2024-01-01T00:00:00' }])
@@ -72,7 +76,7 @@ describe('Chat Component', () => {
 
   it('sends message and displays it in chat history', async () => {
     global.fetch = vi.fn((url) => {
-      if (url === 'http://localhost:8080/api/chat/sessions') {
+      if (url === SESSIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
       }
       return Promise.resolve({
@@ -96,7 +100,7 @@ describe('Chat Component', () => {
 
   it('calls API with correct message, sessionId, and authorization header', async () => {
     const fetchMock = vi.fn((url, options) => {
-      if (url === 'http://localhost:8080/api/chat/sessions') {
+      if (url === SESSIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
       }
       return Promise.resolve({
@@ -116,7 +120,7 @@ describe('Chat Component', () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        'http://localhost:8080/api/chat',
+        CHAT_URL,
         expect.objectContaining({
           method: 'POST',
           headers: {
@@ -132,7 +136,7 @@ describe('Chat Component', () => {
 
   it('displays AI response after receiving it', async () => {
     global.fetch = vi.fn((url) => {
-      if (url === 'http://localhost:8080/api/chat/sessions') {
+      if (url === SESSIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
       }
       return Promise.resolve({
@@ -156,7 +160,7 @@ describe('Chat Component', () => {
 
   it('displays error message when API fails', async () => {
     global.fetch = vi.fn((url) => {
-      if (url === 'http://localhost:8080/api/chat/sessions') {
+      if (url === SESSIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
       }
       return Promise.resolve({
@@ -180,7 +184,7 @@ describe('Chat Component', () => {
 
   it('shows loading state while waiting for response', async () => {
     global.fetch = vi.fn((url) => {
-      if (url === 'http://localhost:8080/api/chat/sessions') {
+      if (url === SESSIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
       }
       return new Promise((resolve) => {

@@ -4,6 +4,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import SectionView from './SectionView'
+import { API_BASE_URL } from '../config'
+
+const SECTIONS_URL = `${API_BASE_URL}/api/courses/1/sections`
+const SECTION_SESSIONS_URL = `${API_BASE_URL}/api/courses/1/sections/2/chat/sessions`
 
 const mockAuth = {
   auth: { token: 'test-token', email: 'testuser@example.com' },
@@ -26,7 +30,7 @@ describe('SectionView Component', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     global.fetch = vi.fn((url) => {
-      if (url === 'http://localhost:8080/api/courses/1/sections') {
+      if (url === SECTIONS_URL) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve([
@@ -34,7 +38,7 @@ describe('SectionView Component', () => {
           ])
         })
       }
-      if (url === 'http://localhost:8080/api/courses/1/sections/2/chat/sessions') {
+      if (url === SECTION_SESSIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
       }
       return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) })
@@ -60,7 +64,7 @@ describe('SectionView Component', () => {
 
   it('shows an error when the section is not found in the list', async () => {
     global.fetch = vi.fn((url) => {
-      if (url === 'http://localhost:8080/api/courses/1/sections') {
+      if (url === SECTIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
       }
       return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 
 export default function CourseList() {
   const [courses, setCourses] = useState([]);
@@ -13,7 +14,7 @@ export default function CourseList() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch('http://localhost:8080/api/courses', {
+        const res = await fetch(`${API_BASE_URL}/api/courses`, {
           headers: { 'Authorization': `Bearer ${auth.token}` }
         });
         if (res.ok) {
