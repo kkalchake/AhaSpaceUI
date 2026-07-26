@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import SessionSidebar from '../components/SessionSidebar';
+import { API_BASE_URL } from '../config';
 import './Auth.css';
 
 export default function Chat() {
@@ -30,7 +31,7 @@ export default function Chat() {
   const loadSessions = async () => {
     setSessionsLoading(true);
     try {
-      const res = await fetch('http://localhost:8080/api/chat/sessions', {
+      const res = await fetch(`${API_BASE_URL}/api/chat/sessions`, {
         headers: { 'Authorization': `Bearer ${auth.token}` }
       });
       if (res.ok) {
@@ -46,7 +47,7 @@ export default function Chat() {
   const handleSelectSession = async (sessionId) => {
     setError(null);
     try {
-      const res = await fetch(`http://localhost:8080/api/chat/sessions/${sessionId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/chat/sessions/${sessionId}`, {
         headers: { 'Authorization': `Bearer ${auth.token}` }
       });
       if (res.ok) {
@@ -82,7 +83,7 @@ export default function Chat() {
   const handleDeleteSession = async (sessionId) => {
     if (!window.confirm('Delete this conversation? This cannot be undone.')) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/chat/sessions/${sessionId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/chat/sessions/${sessionId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${auth.token}` }
       });
@@ -114,7 +115,7 @@ export default function Chat() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8080/api/chat', {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -4,6 +4,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import { useAuth } from '../context/AuthContext';
 import SessionSidebar from './SessionSidebar';
+import { API_BASE_URL } from '../config';
 
 /*
  * SectionAssistantPanel reuses Chat.jsx's fetch/send/session-switch logic,
@@ -27,7 +28,7 @@ export default function SectionAssistantPanel({ courseId, sectionId }) {
   const messagesEndRef = useRef(null);
   const { auth } = useAuth();
 
-  const basePath = `http://localhost:8080/api/courses/${courseId}/sections/${sectionId}/chat`;
+  const basePath = `${API_BASE_URL}/api/courses/${courseId}/sections/${sectionId}/chat`;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
