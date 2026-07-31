@@ -1,31 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../config';
+import { coursesBase, authHeaders, fetchCourseMeta } from '../api/courseApi';
+import './CoursePhases.css';
 
 export default function CoursePhases() {
   const { courseId } = useParams();
+  const [course, setCourse] = useState(null);
   const [phases, setPhases] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { auth } = useAuth();
+  const { auth, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const loadPhases = async () => {
+    const load = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/courses/${courseId}/phases`, {
-          headers: { 'Authorization': `Bearer ${auth.token}` }
-        });
-        if (res.ok) {
-          setPhases(await res.json());
-        } else if (res.status === 401 || res.status === 403) {
+        /*
+          Course metadata (title/description/source/insights) and the phase
+          list come from two different endpoints - there's no single
+          "course detail" response. Promise.all keeps them under one loading
+          state and one error state instead of two independent spinners.
+        */
+        const [metaResult, phasesRes] = await Promise.all([
+          fetchCourseMeta(courseId, isAuthenticated, auth),
+          fetch(`${coursesBase(isAuthenticated)}/${courseId}/phases`, { headers: authHeaders(auth) })
+        ]);
+
+        if (metaResult.status === 401 || metaResult.status === 403 || phasesRes.status === 401 || phasesRes.status === 403) {
           setError('Session expired. Please log in again.');
-        } else if (res.status === 404) {
-          setError('Course not found.');
-        } else {
+        } else if (metaResult.status === 404 || phasesRes.status === 404) {
+          setError(isAuthenticated
+            ? 'Course not found.'
+            : "This course isn't available to preview. Sign in to view it.");
+        } else if (metaResult.status !== 200 || !phasesRes.ok) {
           setError('Failed to load phases.');
+        } else {
+          setCourse(metaResult.course);
+          setPhases(await phasesRes.json());
         }
       } catch (err) {
         setError('Network error. Please check your connection.');
@@ -33,13 +46,11 @@ export default function CoursePhases() {
         setIsLoading(false);
       }
     };
-    loadPhases();
-  }, [auth.token, courseId]);
+    load();
+  }, [auth?.token, isAuthenticated, courseId]);
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <h2>Phases</h2>
-
       {error && (
         <div className="error-banner" style={{ marginBottom: '10px' }}>
           {error}
@@ -48,32 +59,68 @@ export default function CoursePhases() {
 
       {isLoading ? (
         <p style={{ color: 'var(--muted)' }}>Loading phases...</p>
-      ) : phases.length === 0 ? (
-        !error && <p style={{ color: 'var(--muted)' }}>No phases available yet.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {/* Backend returns phases pre-sorted by orderIndex ascending, same
-              contract as CourseSections' section list - no client-side sort. */}
-          {phases.map((phase) => (
-            <Link
-              key={phase.id}
-              to={`/courses/${courseId}/phases/${phase.id}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              <div style={{
-                padding: '15px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface)'
-              }}>
-                <h3 style={{ margin: '0 0 8px 0' }}>{phase.title}</h3>
-                {phase.description && (
-                  <p style={{ margin: 0, color: 'var(--muted)' }}>{phase.description}</p>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
+        <>
+          {course && (
+            <div className="course-header">
+              <h1 className="course-title">{course.title}</h1>
+              {course.description && (
+                <p className="course-description">{course.description}</p>
+              )}
+              {course.sourceName && (
+                <div className="course-source">
+                  {course.sourceUrl ? (
+                    <a href={course.sourceUrl} target="_blank" rel="noopener noreferrer">
+                      {course.sourceName}
+                    </a>
+                  ) : (
+                    <span>{course.sourceName}</span>
+                  )}
+                  {course.sourceLicense && (
+                    <small className="course-source-license">{course.sourceLicense}</small>
+                  )}
+                </div>
+              )}
+              {course.insights && course.insights.length > 0 && (
+                <ul className="course-insights">
+                  {course.insights.map((insight, idx) => (
+                    <li key={idx}>{insight}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          <h2 className="phases-heading">Phases</h2>
+
+          {phases.length === 0 ? (
+            !error && <p style={{ color: 'var(--muted)' }}>No phases available yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* Backend returns phases pre-sorted by orderIndex ascending, same
+                  contract as CourseSections' section list - no client-side sort. */}
+              {phases.map((phase) => (
+                <Link
+                  key={phase.id}
+                  to={`/courses/${courseId}/phases/${phase.id}`}
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  <div style={{
+                    padding: '15px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)',
+                    backgroundColor: 'var(--surface)'
+                  }}>
+                    <h3 style={{ margin: '0 0 8px 0' }}>{phase.title}</h3>
+                    {phase.description && (
+                      <p style={{ margin: 0, color: 'var(--muted)' }}>{phase.description}</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

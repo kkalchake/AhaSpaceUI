@@ -8,16 +8,22 @@ import { API_BASE_URL } from '../config'
 
 const SECTIONS_URL = `${API_BASE_URL}/api/courses/1/phases/3/sections`
 const SECTION_SESSIONS_URL = `${API_BASE_URL}/api/courses/1/phases/3/sections/2/chat/sessions`
+const PUBLIC_SECTIONS_URL = `${API_BASE_URL}/api/public/courses/1/phases/3/sections`
 
 const mockAuth = {
   auth: { token: 'test-token', email: 'testuser@example.com' },
   isAuthenticated: true
 }
 
-const renderAtRoute = () => {
+const mockUnauth = {
+  auth: null,
+  isAuthenticated: false
+}
+
+const renderAtRoute = (authValue) => {
   return render(
     <MemoryRouter initialEntries={['/courses/1/phases/3/sections/2']}>
-      <AuthContext.Provider value={mockAuth}>
+      <AuthContext.Provider value={authValue}>
         <Routes>
           <Route path="/courses/:courseId/phases/:phaseId/sections/:sectionId" element={<SectionView />} />
         </Routes>
@@ -26,17 +32,16 @@ const renderAtRoute = () => {
   )
 }
 
-describe('SectionView Component', () => {
+const SECTIONS = [
+  { id: 2, title: 'Heading', orderIndex: 1, content: '# Heading\n\nSome body text.', phaseId: 3 }
+]
+
+describe('SectionView Component - authenticated', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     global.fetch = vi.fn((url) => {
       if (url === SECTIONS_URL) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([
-            { id: 2, title: 'Heading', orderIndex: 1, content: '# Heading\n\nSome body text.', phaseId: 3 }
-          ])
-        })
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(SECTIONS) })
       }
       if (url === SECTION_SESSIONS_URL) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
@@ -46,7 +51,7 @@ describe('SectionView Component', () => {
   })
 
   it('renders Markdown content, turning a # heading into an <h1>', async () => {
-    renderAtRoute()
+    renderAtRoute(mockAuth)
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { level: 1, name: 'Heading' })).toBeInTheDocument()
@@ -55,7 +60,7 @@ describe('SectionView Component', () => {
   })
 
   it('renders the SectionAssistantPanel alongside the lecture notes', async () => {
-    renderAtRoute()
+    renderAtRoute(mockAuth)
 
     await waitFor(() => {
       expect(screen.getByText('Section Assistant')).toBeInTheDocument()
@@ -70,7 +75,7 @@ describe('SectionView Component', () => {
       return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
     })
 
-    renderAtRoute()
+    renderAtRoute(mockAuth)
 
     await waitFor(() => {
       expect(screen.getByText('Section not found.')).toBeInTheDocument()
@@ -78,7 +83,7 @@ describe('SectionView Component', () => {
   })
 
   it('renders prev/next chapter navigation with a progress indicator', async () => {
-    renderAtRoute()
+    renderAtRoute(mockAuth)
 
     await waitFor(() => {
       expect(screen.getAllByText('Section 1 of 1').length).toBeGreaterThan(0)
@@ -91,10 +96,34 @@ describe('SectionView Component', () => {
   })
 
   it('renders a toggle for the all-sections list panel', async () => {
-    renderAtRoute()
+    renderAtRoute(mockAuth)
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /show section list/i })).toBeInTheDocument()
     })
+  })
+})
+
+describe('SectionView Component - unauthenticated', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    global.fetch = vi.fn((url) => {
+      if (url === PUBLIC_SECTIONS_URL) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(SECTIONS) })
+      }
+      return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({}) })
+    })
+  })
+
+  it('fetches the public sections URL with no Authorization header, and issues no chat session request', async () => {
+    const fetchMock = global.fetch
+
+    renderAtRoute(mockUnauth)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: 'Heading' })).toBeInTheDocument()
+    })
+    expect(fetchMock).toHaveBeenCalledWith(PUBLIC_SECTIONS_URL, { headers: {} })
+    expect(fetchMock).not.toHaveBeenCalledWith(SECTION_SESSIONS_URL, expect.anything())
   })
 })

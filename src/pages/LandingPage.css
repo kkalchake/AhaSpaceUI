@@ -1,0 +1,73 @@
+/*
+ * Only the genuinely new landing-page classes live here. Everything else
+ * (.auth-page, .auth-hero, .hero-subtext, .hero-secondary-link, .btn-primary,
+ * .btn-secondary) is reused from Auth.css so the landing page inherits the
+ * same paper/ink color tokens and dark-mode handling automatically.
+ */
+
+.landing-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 720px;
+}
+
+.landing-feature {
+  flex: 1 1 200px;
+  min-width: 180px;
+  background: #ffffff;
+  border: 1px solid rgba(47, 50, 44, 0.06);
+  border-radius: 12px;
+  padding: 18px 20px;
+  text-align: left;
+}
+
+.landing-feature h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.landing-feature p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.landing-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+/* .landing-cta sits outside .auth-hero, so the ".auth-hero > .btn-primary"
+   hero-sized override in Auth.css doesn't reach it - restated here so Sign
+   In still reads as the dominant action next to Register. */
+.landing-cta .btn-primary {
+  width: auto;
+  min-width: 200px;
+  padding: 16px 40px;
+  font-size: 17px;
+  margin-top: 0;
+}
+
+.landing-cta .btn-secondary {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (prefers-color-scheme: dark) {
+  .landing-feature {
+    background: #262924;
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+}

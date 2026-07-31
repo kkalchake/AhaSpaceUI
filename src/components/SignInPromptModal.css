@@ -1,0 +1,76 @@
+/*
+ * Auth.css's .btn-primary/.btn-secondary rules are scoped under .auth-page
+ * (deliberately, per that file's own header comment) so they don't leak into
+ * unrelated parts of the app. This modal mounts inside SectionView, not
+ * inside .auth-page, so it defines its own .btn-primary/.btn-secondary
+ * appearance here rather than depending on Auth.css - the class names still
+ * match the landing page's hierarchy (primary vs. secondary action) even
+ * though the CSS backing them is separate.
+ */
+
+.sign-in-prompt-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 22, 20, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.sign-in-prompt-dialog {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface, #ffffff);
+  color: var(--text, #2f322c);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.35);
+}
+
+.sign-in-prompt-dialog h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.sign-in-prompt-dialog p {
+  margin: 0 0 20px;
+  color: var(--muted, #6b6d61);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sign-in-prompt-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.sign-in-prompt-actions .btn-primary,
+.sign-in-prompt-actions .btn-secondary {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  padding: 11px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sign-in-prompt-actions .btn-primary {
+  background: #4f7a78;
+  color: #ffffff;
+}
+
+.sign-in-prompt-actions .btn-primary:hover {
+  background: #3f635f;
+}
+
+.sign-in-prompt-actions .btn-secondary {
+  background: #dde6e4;
+  color: #3f635f;
+}
+
+.sign-in-prompt-actions .btn-secondary:hover {
+  background: #c3d3d1;
+}

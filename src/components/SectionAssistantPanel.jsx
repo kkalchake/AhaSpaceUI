@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ChatToolbar from './ChatToolbar';
 import MessageBubble, { ThinkingIndicator } from './MessageBubble';
+import SignInPromptModal from './SignInPromptModal';
 import { API_BASE_URL } from '../config';
 import './SectionAssistantPanel.css';
 
@@ -24,8 +25,9 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const messagesEndRef = useRef(null);
-  const { auth } = useAuth();
+  const { auth, isAuthenticated } = useAuth();
 
   const basePath = `${API_BASE_URL}/api/courses/${courseId}/phases/${phaseId}/sections/${sectionId}/chat`;
 
@@ -38,9 +40,12 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
   }, [messages]);
 
   useEffect(() => {
+    // Skip the session-history fetch entirely for logged-out visitors - it
+    // would otherwise fire with `Bearer undefined` and get a guaranteed 403.
+    if (!isAuthenticated) return;
     loadSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, phaseId, sectionId]);
+  }, [isAuthenticated, courseId, phaseId, sectionId]);
 
   const loadSessions = async () => {
     setSessionsLoading(true);
@@ -117,6 +122,17 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
 
+    /*
+     * This is a UX nudge, not a security boundary: it only stops the panel
+     * from firing a request that would fail anyway (no token to send).
+     * SectionChatController on the backend, unchanged this week, remains
+     * the actual enforcement point for every chat endpoint.
+     */
+    if (!isAuthenticated) {
+      setShowSignInPrompt(true);
+      return;
+    }
+
     const userMessage = {
       id: Date.now(),
       role: 'user',
@@ -172,14 +188,17 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
         Ask questions about this section
       </p>
 
-      <ChatToolbar
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={handleSelectSession}
-        onNewSession={handleNewSession}
-        onDeleteSession={handleDeleteSession}
-        isLoading={sessionsLoading}
-      />
+      {/* Session history is meaningless without an account to attach it to. */}
+      {isAuthenticated && (
+        <ChatToolbar
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={handleSelectSession}
+          onNewSession={handleNewSession}
+          onDeleteSession={handleDeleteSession}
+          isLoading={sessionsLoading}
+        />
+      )}
 
       {error && (
           <div className="error-banner" style={{ marginBottom: '10px' }}>
@@ -237,6 +256,8 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
             {isLoading ? 'Sending...' : 'Send'}
           </button>
         </form>
+
+        <SignInPromptModal isOpen={showSignInPrompt} onClose={() => setShowSignInPrompt(false)} />
     </div>
   );
 }
