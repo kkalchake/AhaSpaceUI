@@ -38,31 +38,60 @@
   color: var(--muted);
 }
 
-.landing-cta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  margin-top: 4px;
+/*
+ * "Browse Public Courses" is the only CTA left on the landing page body now
+ * that Sign In/Register moved into the nav bar (Week 19) - it needs to read
+ * as a real button, not a text link, or the page has no visible primary
+ * action at all.
+ *
+ * Scoped as ".auth-page .hero-secondary-link a" (specificity 0,2,1), not
+ * just ".hero-secondary-link a" (0,1,1) - Auth.css's generic ".auth-page a"
+ * rule (also 0,1,1: color: var(--accent-deep)) was tying with the original
+ * lower-specificity version and, depending on CSS import order, sometimes
+ * winning - which is exactly what produced the reported bug: dark
+ * (--accent-deep) text silently replacing the white text color on top of
+ * the teal background, a near-unreadable dark-on-dark button. The extra
+ * .auth-page ancestor class makes this rule unambiguously win regardless of
+ * import order, closing that off for good rather than relying on source
+ * order to keep it fixed.
+ *
+ * Text color is var(--surface), not a hardcoded #ffffff - same pattern
+ * NavBar.css's .nav-cta already uses. --accent lightens in dark mode (from
+ * #4f7a78 to #7fa3a0), meant for use as *text* on a dark background, not as
+ * a solid button fill under white text - hardcoded white on that lighter
+ * dark-mode teal only hits a 2.75:1 contrast ratio, below WCAG AA even for
+ * large text (3:1). --surface flips with the theme (white in light mode,
+ * near-black in dark mode), so pairing it with --accent keeps the button
+ * legible in both: 4.79:1 in light mode, 5.37:1 in dark.
+ */
+.hero-secondary-link {
+  margin-top: 12px;
 }
 
-/* .landing-cta sits outside .auth-hero, so the ".auth-hero > .btn-primary"
-   hero-sized override in Auth.css doesn't reach it - restated here so Sign
-   In still reads as the dominant action next to Register. */
-.landing-cta .btn-primary {
-  width: auto;
-  min-width: 200px;
-  padding: 16px 40px;
-  font-size: 17px;
-  margin-top: 0;
-}
-
-.landing-cta .btn-secondary {
-  text-decoration: none;
+.auth-page .hero-secondary-link a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 280px;
+  padding: 22px 52px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--surface);
+  background: var(--accent);
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 14px 32px -12px rgba(79, 122, 120, 0.6);
+  transition: background-color .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+
+.auth-page .hero-secondary-link a:hover,
+.auth-page .hero-secondary-link a:focus-visible {
+  background: var(--accent-hover);
+  color: var(--surface);
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -14px rgba(79, 122, 120, 0.7);
 }
 
 @media (prefers-color-scheme: dark) {

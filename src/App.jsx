@@ -9,6 +9,7 @@ import CourseList from './pages/CourseList';
 import CoursePhases from './pages/CoursePhases';
 import PhaseSections from './pages/PhaseSections';
 import SectionView from './pages/SectionView';
+import AgenticLearning from './pages/AgenticLearning';
 import ProtectedRoute from './components/ProtectedRoute';
 import NavBar from './components/NavBar';
 import './pages/Auth.css';
@@ -37,6 +38,13 @@ function AppRoutes() {
         <Route path="/courses/:courseId" element={<CoursePhases />} />
         <Route path="/courses/:courseId/phases/:phaseId" element={<PhaseSections />} />
         <Route path="/courses/:courseId/phases/:phaseId/sections/:sectionId" element={<SectionView />} />
+        {/*
+          Task 9: static resource page, deliberately outside the
+          Course/Phase/Section API surface - no fetches, no auth gate, no
+          data contract at all. Kept next to the public course routes since
+          it's reachable at both auth tiers, same as they are.
+        */}
+        <Route path="/agentic-learning" element={<AgenticLearning />} />
       </Routes>
     </>
   );

@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { coursesBase, authHeaders } from '../api/courseApi';
+import './CoursePages.css';
+
+/*
+ * AI Agentic: Self Learning is a fully static page (AgenticLearning.jsx)
+ * with no backend Course/Phase/Section entity behind it - this entry is
+ * spliced into the rendered list client-side, not fetched from the API, so
+ * it appears as the catalog's second entry without implying a real
+ * Phase/Section drill-down exists (its `href` routes straight to
+ * /agentic-learning instead of /courses/:id).
+ */
+const AGENTIC_LEARNING_ENTRY = {
+  id: 'agentic-learning',
+  title: 'AI Agentic: Self Learning',
+  description: 'Curated reading, videos, and code references for self-directed agentic AI learning.',
+  href: '/agentic-learning'
+};
 
 export default function CourseList() {
   const [courses, setCourses] = useState([]);
@@ -33,17 +49,25 @@ export default function CourseList() {
     loadCourses();
   }, [auth?.token, isAuthenticated]);
 
+  // Spliced in at index 1 so it reads as "the second course" whenever a real
+  // course exists, or as the sole entry when the real catalog is empty -
+  // either way it's always present, for both auth tiers.
+  const displayCourses = [
+    ...courses.slice(0, 1),
+    AGENTIC_LEARNING_ENTRY,
+    ...courses.slice(1)
+  ];
+
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+    <div className="course-page">
+      <nav className="course-page-nav" aria-label="Page navigation">
+        <Link to="/">← Home</Link>
+      </nav>
+
       {isAuthenticated ? (
-        <h2>Courses</h2>
+        <h2 className="course-page-heading">Courses</h2>
       ) : (
-        <>
-          <h2>Public courses</h2>
-          <p style={{ marginTop: '-8px', color: 'var(--muted)' }}>
-            Sign in to see the full course catalog.
-          </p>
-        </>
+        <h2 className="course-page-heading">Public courses</h2>
       )}
 
       {error && (
@@ -52,34 +76,45 @@ export default function CourseList() {
         </div>
       )}
 
+      {!isLoading && courses.length === 0 && !error && (
+        <p className="course-page-status">
+          {isAuthenticated ? 'No courses available yet.' : 'No public courses available yet. Sign in to see more.'}
+        </p>
+      )}
+
       {isLoading ? (
-        <p style={{ color: 'var(--muted)' }}>Loading courses...</p>
-      ) : courses.length === 0 ? (
-        !error && (
-          <p style={{ color: 'var(--muted)' }}>
-            {isAuthenticated ? 'No courses available yet.' : 'No public courses available yet. Sign in to see more.'}
-          </p>
-        )
+        <p className="course-page-status">Loading courses...</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {courses.map(course => (
+        <div className="course-card-list">
+          {displayCourses.map(course => (
             <Link
               key={course.id}
-              to={`/courses/${course.id}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
+              to={course.href ?? `/courses/${course.id}`}
+              className="course-card-link"
             >
-              <div style={{
-                padding: '15px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface)'
-              }}>
-                <h3 style={{ margin: '0 0 8px 0' }}>{course.title}</h3>
-                <p style={{ margin: 0, color: 'var(--muted)' }}>{course.description}</p>
+              <div className="course-card">
+                <h3>{course.title}</h3>
+                <p>{course.description}</p>
               </div>
             </Link>
           ))}
         </div>
+      )}
+
+      {/*
+        Task 3 (Week 19) put this notice right under the heading; this round
+        of feedback moves it below the course list instead, and adds a
+        Register link alongside Sign In so both auth entry points are
+        reachable from the same callout.
+      */}
+      {!isAuthenticated && (
+        <aside className="course-page-notice">
+          <p>Sign in to see the full course catalog.</p>
+          <div className="course-page-notice-actions">
+            <Link to="/login" className="course-page-notice-btn primary">Sign in</Link>
+            <Link to="/register" className="course-page-notice-btn secondary">Register</Link>
+          </div>
+        </aside>
       )}
     </div>
   );

@@ -54,8 +54,16 @@ describe('SectionAssistantPanel Component', () => {
     renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
     expect(screen.getByText('Section Assistant')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Type your message...')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Ask anything about this section...')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ask/i })).toBeInTheDocument()
+  })
+
+  it('does not repeat the "ask a question" prompt across the header, empty state, and input box', () => {
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
+
+    expect(screen.queryByText('Ask questions about this section')).not.toBeInTheDocument()
+    expect(screen.queryByText('Ask a question about this section below.')).not.toBeInTheDocument()
+    expect(screen.getByText('No messages yet — ask below.')).toBeInTheDocument()
   })
 
   it('renders sidebar with new chat button', () => {
@@ -89,14 +97,32 @@ describe('SectionAssistantPanel Component', () => {
   it('displays empty state message when no messages', () => {
     renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
-    expect(screen.getByText(/ask a question about this section/i)).toBeInTheDocument()
+    expect(screen.getByText('No messages yet — ask below.')).toBeInTheDocument()
   })
 
   it('disables send button when input is empty', () => {
     renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
-    const sendButton = screen.getByRole('button', { name: /send/i })
+    const sendButton = screen.getByRole('button', { name: /ask/i })
     expect(sendButton).toBeDisabled()
+  })
+
+  it('shows the AI-generated caption only on focus or while typing, not before', () => {
+    renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
+
+    const input = screen.getByPlaceholderText('Ask anything about this section...')
+    const caption = screen.getByText(/responses are ai-generated/i)
+
+    expect(caption).not.toHaveClass('visible')
+
+    fireEvent.focus(input)
+    expect(caption).toHaveClass('visible')
+
+    fireEvent.blur(input)
+    expect(caption).not.toHaveClass('visible')
+
+    fireEvent.change(input, { target: { value: 'A question' } })
+    expect(caption).toHaveClass('visible')
   })
 
   it('sends message and displays it in chat history', async () => {
@@ -112,8 +138,8 @@ describe('SectionAssistantPanel Component', () => {
 
     renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
-    const input = screen.getByPlaceholderText('Type your message...')
-    const sendButton = screen.getByRole('button', { name: /send/i })
+    const input = screen.getByPlaceholderText('Ask anything about this section...')
+    const sendButton = screen.getByRole('button', { name: /ask/i })
 
     fireEvent.change(input, { target: { value: 'What is this section about?' } })
     fireEvent.click(sendButton)
@@ -137,8 +163,8 @@ describe('SectionAssistantPanel Component', () => {
 
     renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
-    const input = screen.getByPlaceholderText('Type your message...')
-    const sendButton = screen.getByRole('button', { name: /send/i })
+    const input = screen.getByPlaceholderText('Ask anything about this section...')
+    const sendButton = screen.getByRole('button', { name: /ask/i })
 
     fireEvent.change(input, { target: { value: 'Test message' } })
     fireEvent.click(sendButton)
@@ -172,8 +198,8 @@ describe('SectionAssistantPanel Component', () => {
 
     renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
-    const input = screen.getByPlaceholderText('Type your message...')
-    const sendButton = screen.getByRole('button', { name: /send/i })
+    const input = screen.getByPlaceholderText('Ask anything about this section...')
+    const sendButton = screen.getByRole('button', { name: /ask/i })
 
     fireEvent.change(input, { target: { value: 'Hello' } })
     fireEvent.click(sendButton)
@@ -196,8 +222,8 @@ describe('SectionAssistantPanel Component', () => {
 
     renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
-    const input = screen.getByPlaceholderText('Type your message...')
-    const sendButton = screen.getByRole('button', { name: /send/i })
+    const input = screen.getByPlaceholderText('Ask anything about this section...')
+    const sendButton = screen.getByRole('button', { name: /ask/i })
 
     fireEvent.change(input, { target: { value: 'Hello' } })
     fireEvent.click(sendButton)
@@ -224,8 +250,8 @@ describe('SectionAssistantPanel Component', () => {
 
     renderWithAuth(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />)
 
-    const input = screen.getByPlaceholderText('Type your message...')
-    const sendButton = screen.getByRole('button', { name: /send/i })
+    const input = screen.getByPlaceholderText('Ask anything about this section...')
+    const sendButton = screen.getByRole('button', { name: /ask/i })
 
     fireEvent.change(input, { target: { value: 'Hello' } })
     fireEvent.click(sendButton)
@@ -256,8 +282,8 @@ describe('SectionAssistantPanel Component - unauthenticated', () => {
   it('fires zero fetch calls on submit and opens the sign-in prompt instead, preserving input text', () => {
     renderWithProvider(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />, mockUnauth)
 
-    const input = screen.getByPlaceholderText('Type your message...')
-    const sendButton = screen.getByRole('button', { name: /send/i })
+    const input = screen.getByPlaceholderText('Ask anything about this section...')
+    const sendButton = screen.getByRole('button', { name: /ask/i })
 
     fireEvent.change(input, { target: { value: 'What is this section about?' } })
     fireEvent.click(sendButton)

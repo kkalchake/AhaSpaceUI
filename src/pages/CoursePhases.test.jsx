@@ -89,6 +89,16 @@ describe('CoursePhases Component - authenticated', () => {
     expect(screen.getByText('Math foundations before ML')).toBeInTheDocument()
   })
 
+  it('renders back-to-courses and main-page nav links', async () => {
+    renderAtRoute(mockAuth)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: COURSE.title })).toBeInTheDocument()
+    })
+    expect(screen.getByRole('link', { name: /back to courses/i })).toHaveAttribute('href', '/courses')
+    expect(screen.getByRole('link', { name: 'Main page' })).toHaveAttribute('href', '/')
+  })
+
   it('shows empty state when there are no phases', async () => {
     global.fetch = vi.fn((url) => {
       if (url === COURSES_URL) {

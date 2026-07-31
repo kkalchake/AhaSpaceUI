@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -191,29 +191,52 @@ export default function SectionView() {
   return (
     <div className="section-view" ref={containerRef}>
       <div className="section-content" style={{ flexBasis: `calc(${splitRatio}% - 4px)` }} ref={sectionListRef}>
-        <button
-          className="section-list-toggle"
-          onClick={() => setIsSectionListOpen(prev => !prev)}
-          aria-label={isSectionListOpen ? 'Hide section list' : 'Show section list'}
-          aria-expanded={isSectionListOpen}
-        >
-          ≡
-        </button>
-        <div className={`section-list-panel ${isSectionListOpen ? 'open' : ''}`} role="listbox" aria-label="All sections in this phase">
-          {allSections.map((s, index) => (
-            <button
-              key={s.id}
-              role="option"
-              aria-selected={section && s.id === section.id}
-              className={`section-list-row ${section && s.id === section.id ? 'active' : ''}`}
-              onClick={() => {
-                setIsSectionListOpen(false);
-                navigate(`/courses/${courseId}/phases/${phaseId}/sections/${s.id}`);
-              }}
-            >
-              {index + 1}. {s.title}
-            </button>
-          ))}
+        {/*
+          Sticky top bar: keeps both the section-list toggle and the new
+          back-to-sections link visible while the reading pane scrolls. The
+          toggle's aria-label values (Show/Hide section list) are unchanged so
+          existing tests keep resolving it - only the visible "Sections" text
+          next to the icon is new (task-5 discoverability fix).
+        */}
+        <div className="section-topbar">
+          <button
+            className="section-list-toggle"
+            onClick={() => setIsSectionListOpen(prev => !prev)}
+            aria-label={isSectionListOpen ? 'Hide section list' : 'Show section list'}
+            aria-expanded={isSectionListOpen}
+          >
+            <span aria-hidden="true">≡</span> Sections
+          </button>
+          <Link className="section-back-link" to={`/courses/${courseId}/phases/${phaseId}`}>← Back to sections</Link>
+
+          {/*
+            Bug fix: this panel used to be a sibling of .section-topbar,
+            positioned absolute relative to .section-content (the scrollable
+            reading pane) - so it scrolled away with the rest of the pane's
+            content, and opening it after scrolling down left it rendered
+            off-screen above the current scroll position. Nested inside
+            .section-topbar instead: .section-topbar is position: sticky,
+            which establishes a containing block for absolutely positioned
+            descendants the same way position: relative does, so the panel
+            now inherits the topbar's "always in the current view" behavior
+            for free (see SectionView.css for the positioning rules).
+          */}
+          <div className={`section-list-panel ${isSectionListOpen ? 'open' : ''}`} role="listbox" aria-label="All sections in this phase">
+            {allSections.map((s, index) => (
+              <button
+                key={s.id}
+                role="option"
+                aria-selected={section && s.id === section.id}
+                className={`section-list-row ${section && s.id === section.id ? 'active' : ''}`}
+                onClick={() => {
+                  setIsSectionListOpen(false);
+                  navigate(`/courses/${courseId}/phases/${phaseId}/sections/${s.id}`);
+                }}
+              >
+                {index + 1}. {s.title}
+              </button>
+            ))}
+          </div>
         </div>
         {error && (
           <div className="error-banner" style={{ marginBottom: '10px' }}>

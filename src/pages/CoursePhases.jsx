@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { coursesBase, authHeaders, fetchCourseMeta } from '../api/courseApi';
+import './CoursePages.css';
 import './CoursePhases.css';
 
 export default function CoursePhases() {
@@ -50,7 +51,12 @@ export default function CoursePhases() {
   }, [auth?.token, isAuthenticated, courseId]);
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+    <div className="course-page">
+      <nav className="course-page-nav" aria-label="Page navigation">
+        <Link to="/courses">← Back to courses</Link>
+        <Link to="/">Main page</Link>
+      </nav>
+
       {error && (
         <div className="error-banner" style={{ marginBottom: '10px' }}>
           {error}
@@ -58,7 +64,7 @@ export default function CoursePhases() {
       )}
 
       {isLoading ? (
-        <p style={{ color: 'var(--muted)' }}>Loading phases...</p>
+        <p className="course-page-status">Loading phases...</p>
       ) : (
         <>
           {course && (
@@ -94,26 +100,21 @@ export default function CoursePhases() {
           <h2 className="phases-heading">Phases</h2>
 
           {phases.length === 0 ? (
-            !error && <p style={{ color: 'var(--muted)' }}>No phases available yet.</p>
+            !error && <p className="course-page-status">No phases available yet.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="course-card-list">
               {/* Backend returns phases pre-sorted by orderIndex ascending, same
                   contract as CourseSections' section list - no client-side sort. */}
               {phases.map((phase) => (
                 <Link
                   key={phase.id}
                   to={`/courses/${courseId}/phases/${phase.id}`}
-                  style={{ textDecoration: 'none', color: 'inherit' }}
+                  className="course-card-link"
                 >
-                  <div style={{
-                    padding: '15px',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border)',
-                    backgroundColor: 'var(--surface)'
-                  }}>
-                    <h3 style={{ margin: '0 0 8px 0' }}>{phase.title}</h3>
+                  <div className="course-card">
+                    <h3>{phase.title}</h3>
                     {phase.description && (
-                      <p style={{ margin: 0, color: 'var(--muted)' }}>{phase.description}</p>
+                      <p>{phase.description}</p>
                     )}
                   </div>
                 </Link>

@@ -1,0 +1,159 @@
+/*
+ * Shared styling for CourseList, CoursePhases, and PhaseSections - the three
+ * pages that all render "a wrapper, a heading, then a list of linked cards"
+ * over course/phase/section data. Extracted once here instead of repeating
+ * the same inline style objects (and re-tuning them three times) in each
+ * page component.
+ */
+
+.course-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  /* #root centers text app-wide; these pages are left-aligned reading/list
+     surfaces, so that inherited centering is overridden right at the root
+     of each page instead of on every child element individually. */
+  text-align: left;
+}
+
+.course-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.course-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.course-card {
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  /* min-width: 0 lets the card shrink inside a flex column instead of
+     forcing the column wider; overflow-wrap: anywhere is the actual fix for
+     long titles/descriptions/URLs that have no natural break point. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  transition: border-color .15s ease;
+}
+
+.course-card:hover {
+  border-color: var(--accent-border);
+}
+
+.course-card h3 {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.course-card p {
+  margin: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.course-page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.course-page-nav a {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.course-page-nav a:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+/* Page-level heading ("Public courses" / "Courses"); bolder and larger than
+   the plain global h2 so it reads as the page's title, not just section
+   chrome. Centered on its own - .course-page sets text-align: left for the
+   nav/cards/notice below it, so this needs its own explicit override rather
+   than inheriting either way. */
+.course-page-heading {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 4px 0 20px;
+  text-align: center;
+}
+
+/* Bumped from a small muted caption to something that catches the eye
+   immediately - this is the answer to "what course am I looking at", so it
+   shouldn't read the same as the surrounding status text. */
+.course-page-context {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 16px;
+}
+
+/* Gate callout: visually distinct from .course-card (accent tint + accent
+   border vs. plain surface/--border) so it can't be mistaken for a list row.
+   Sits below the course list now, so its margin only needs clearance above
+   (from the last card), not below.
+   Stacked and centered - text on top, the Sign in / Register pair centered
+   below it - rather than the earlier side-by-side layout, per feedback. */
+.course-page-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  margin: 28px 0 0;
+  padding: 20px 18px;
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--accent-bg);
+}
+
+.course-page-notice-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.course-page-notice-btn {
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.course-page-notice-btn.primary {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+.course-page-notice-btn.primary:hover {
+  background: var(--accent-hover);
+}
+
+.course-page-notice-btn.secondary {
+  background: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+.course-page-notice-btn.secondary:hover {
+  border-color: var(--accent);
+}
+
+.course-page-status {
+  color: var(--muted);
+}

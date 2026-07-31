@@ -5,3 +5,137 @@
   padding: 0 20px;
   min-width: 0;
 }
+
+.section-assistant-main .assistant-heading {
+  margin: 0 0 10px;
+}
+
+/*
+ * .chat-message-list's flex: 1 (MessageBubble.css, shared with Chat.jsx)
+ * stretches it to fill 100% of .section-assistant-main's height - correct
+ * for Chat.jsx's dedicated full-page layout, but here it turned an empty or
+ * near-empty conversation into a huge bordered blank rectangle sitting
+ * between the header and the input box, reading as broken rather than
+ * "tight." Overridden here (scoped to .section-assistant-main so Chat.jsx is
+ * untouched) to size to its actual content instead: flex: 0 1 auto lets it
+ * shrink to just the empty-state line or a few messages, min-height keeps it
+ * from collapsing to a sliver, and max-height caps it so a long
+ * conversation still scrolls internally (overflow-y: auto is already set on
+ * .chat-message-list) instead of growing past the pane. Any leftover empty
+ * space now falls below the input, at the bottom of the pane, instead of
+ * wedged between the message history and the input.
+ */
+.section-assistant-main .chat-message-list {
+  flex: 0 1 auto;
+  min-height: 80px;
+  max-height: 60vh;
+}
+
+/* Scoped to .section-assistant-main (not a bare .assistant-empty-state
+   rule) so this doesn't affect Chat.jsx, which shares .chat-message-list
+   but has its own empty state. */
+.section-assistant-main .assistant-empty-state {
+  text-align: center;
+  color: var(--muted);
+  margin: 20px 0;
+}
+
+.assistant-ask-box {
+  border: 1.5px solid var(--accent);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: var(--surface);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.assistant-ask-box:focus-within {
+  box-shadow: 0 0 0 4px var(--accent-bg);
+}
+
+.assistant-ask-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .04em;
+}
+
+/* Box border, label text, and rule all use the identical var(--accent)
+   token (not --accent-border) - a deliberate match to decisions.md's spec,
+   not an oversight, so don't "fix" this to --accent-border in review. */
+.assistant-ask-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--accent);
+}
+
+.assistant-ask-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.assistant-ask-input {
+  flex: 1;
+  /* Prevents the flex-overflow this codebase has hit elsewhere when a text
+     input sits next to a fixed-width sibling in a flex row. */
+  min-width: 0;
+  border: none;
+  background: none;
+  font-size: 18px;
+  color: var(--text-h);
+  outline: none;
+}
+
+.assistant-ask-input::placeholder {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.assistant-ask-button {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assistant-ask-button:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.assistant-ask-button:not(:disabled):hover {
+  background: var(--accent-hover);
+}
+
+/* Opacity-only transition (never display) so the caption always reserves
+   its layout space - the box doesn't jump vertically when focus toggles
+   the caption in and out. */
+.assistant-ask-caption {
+  margin: 8px 4px 0;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: left;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.assistant-ask-caption.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-ask-caption {
+    transition: none;
+  }
+}

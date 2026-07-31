@@ -1,0 +1,49 @@
+/*
+ * .agentic-page is applied alongside .course-page in the JSX (max-width
+ * 800px, centered, text-align: left comes from there) rather than
+ * duplicated here - this file only holds the rules genuinely new to this
+ * page.
+ */
+
+.agentic-group {
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.agentic-group:last-child {
+  border-bottom: none;
+}
+
+.agentic-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agentic-list a {
+  color: var(--accent);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.agentic-list a:hover {
+  color: var(--accent-hover);
+}
+
+.agentic-meta {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.agentic-url {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
