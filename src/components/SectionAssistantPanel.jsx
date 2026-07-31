@@ -26,6 +26,7 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
+  const [isAskFocused, setIsAskFocused] = useState(false);
   const messagesEndRef = useRef(null);
   const { auth, isAuthenticated } = useAuth();
 
@@ -181,12 +182,23 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
     }
   };
 
+  // Caption shows on focus OR while there's typed text, so it stays visible
+  // through the whole "focus, then type" flow instead of disappearing the
+  // moment a character lands (decisions.md: focus **or** typing).
+  const captionVisible = isAskFocused || inputValue.trim().length > 0;
+
   return (
     <div className="section-assistant-main">
-      <h2>Section Assistant</h2>
-      <p style={{ textAlign: 'center', color: 'var(--muted)', marginBottom: '20px' }}>
-        Ask questions about this section
-      </p>
+      {/*
+        Feedback: "Section Assistant" / "Ask questions about this section" /
+        "Ask a question about this section below." were three overlapping
+        ways of saying the same thing. Down to one line per distinct UI zone:
+        the header names the panel, the empty-state line (below) is the only
+        remaining prompt - the assistant-ask-box's own "Ask a question" label
+        already does that job for the input itself, so nothing repeats it a
+        third time.
+      */}
+      <h2 className="assistant-heading">Section Assistant</h2>
 
       {/* Session history is meaningless without an account to attach it to. */}
       {isAuthenticated && (
@@ -213,9 +225,7 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
           aria-label="Section assistant messages"
         >
           {messages.length === 0 ? (
-            <p style={{ textAlign: 'center', color: 'var(--muted)', marginTop: '50px' }}>
-              Ask a question about this section below.
-            </p>
+            <p className="assistant-empty-state">No messages yet — ask below.</p>
           ) : (
             messages.map((msg) => (
               <MessageBubble
@@ -231,30 +241,36 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
           <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={sendMessage} style={{ display: 'flex', gap: '10px' }}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message..."
-            aria-label="Type your message"
-            disabled={isLoading}
-            style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !inputValue.trim()}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '8px',
-              backgroundColor: isLoading ? 'var(--border)' : 'var(--accent)',
-              color: '#fff',
-              border: 'none',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {isLoading ? 'Sending...' : 'Send'}
-          </button>
+        <form className="assistant-ask" onSubmit={sendMessage}>
+          <div className="assistant-ask-box">
+            <div className="assistant-ask-label">
+              <span>Ask a question</span>
+              <span className="assistant-ask-rule" aria-hidden="true" />
+            </div>
+            <div className="assistant-ask-row">
+              <input
+                className="assistant-ask-input"
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onFocus={() => setIsAskFocused(true)}
+                onBlur={() => setIsAskFocused(false)}
+                placeholder="Ask anything about this section..."
+                aria-label="Ask a question about this section"
+                disabled={isLoading}
+              />
+              <button
+                className="assistant-ask-button"
+                type="submit"
+                disabled={isLoading || !inputValue.trim()}
+              >
+                <span aria-hidden="true">✨</span> {isLoading ? 'Sending...' : 'Ask'}
+              </button>
+            </div>
+          </div>
+          <p className={`assistant-ask-caption${captionVisible ? ' visible' : ''}`}>
+            Responses are AI-generated from this section's content.
+          </p>
         </form>
 
         <SignInPromptModal isOpen={showSignInPrompt} onClose={() => setShowSignInPrompt(false)} />

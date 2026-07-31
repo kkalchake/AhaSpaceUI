@@ -102,6 +102,24 @@ describe('SectionView Component - authenticated', () => {
       expect(screen.getByRole('button', { name: /show section list/i })).toBeInTheDocument()
     })
   })
+
+  it('shows the visible "Sections" label on the list toggle', async () => {
+    renderAtRoute(mockAuth)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /show section list/i })).toBeInTheDocument()
+    })
+    expect(screen.getByText('Sections')).toBeInTheDocument()
+  })
+
+  it('renders a back-to-sections link pointing at the phase page', async () => {
+    renderAtRoute(mockAuth)
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /back to sections/i })).toBeInTheDocument()
+    })
+    expect(screen.getByRole('link', { name: /back to sections/i })).toHaveAttribute('href', '/courses/1/phases/3')
+  })
 })
 
 describe('SectionView Component - unauthenticated', () => {

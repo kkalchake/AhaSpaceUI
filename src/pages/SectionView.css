@@ -12,25 +12,39 @@
   min-width: 0;
 }
 
+/* Sticky bar holding the section-list toggle and the back-to-sections link,
+   so both stay visible while the reading pane scrolls. Given a solid
+   background (not transparent) because a transparent sticky bar would let
+   scrolled markdown show through underneath it. */
+.section-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 6px 0;
+  margin-bottom: 8px;
+}
+
 /* Collapsible "all sections in this phase" panel: an overlay/flyout anchored
    to the top-left of the content pane, not a real column, so it never
    disturbs the course/chat drag-resize split above. */
 .section-list-toggle {
-  position: sticky;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  width: 32px;
-  height: 32px;
-  margin-bottom: 8px;
+  width: auto;
+  height: auto;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-h);
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -38,16 +52,41 @@
   border-color: var(--accent-border);
 }
 
+.section-back-link {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-h);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.section-back-link:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+/*
+ * Positioned relative to .section-topbar (position: sticky), not
+ * .section-content (the scrollable reading pane) as before. A sticky
+ * element is a containing block for its absolutely positioned descendants,
+ * same as position: relative - so anchoring here means the panel inherits
+ * the topbar's own "stays in the current scrolled view" behavior
+ * automatically. top: 100% / left: 0 place it flush under the topbar's own
+ * box, which is why width/max-height are now sized off the topbar (100% /
+ * viewport units) instead of the old ancestor's dimensions.
+ */
 .section-list-panel {
   display: none;
   flex-direction: column;
   gap: 4px;
   position: absolute;
-  top: 44px;
-  left: 20px;
-  z-index: 2;
-  width: min(280px, calc(100% - 40px));
-  max-height: calc(100% - 64px);
+  top: 100%;
+  left: 0;
+  z-index: 4;
+  width: min(280px, 100%);
+  max-height: min(70vh, 480px);
   overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -116,6 +155,7 @@
 
 .section-nav {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;

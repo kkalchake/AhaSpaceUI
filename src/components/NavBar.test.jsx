@@ -28,12 +28,28 @@ const renderWithAuth = (authValue) => {
 }
 
 describe('NavBar Component', () => {
-  it('renders neither Sign In nor Register when logged out', () => {
+  it('renders the brand link with the full accessible name', () => {
     renderWithAuth(mockUnauth)
 
-    expect(screen.queryByText('Sign In')).not.toBeInTheDocument()
-    expect(screen.queryByText('Register')).not.toBeInTheDocument()
-    expect(screen.getByText('AhaSpace')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /AhaSpace/ })).toHaveAttribute('href', '/')
+  })
+
+  it('renders Sign In and Register when logged out', () => {
+    renderWithAuth(mockUnauth)
+
+    const signInLink = screen.getByText('Sign In')
+    expect(signInLink).toBeInTheDocument()
+    expect(signInLink.closest('a')).toHaveAttribute('href', '/login')
+
+    const registerLink = screen.getByText('Register')
+    expect(registerLink).toBeInTheDocument()
+    expect(registerLink.closest('a')).toHaveAttribute('href', '/register')
+  })
+
+  it('does not render an AI Agentic link (reachable via the /courses catalog instead)', () => {
+    renderWithAuth(mockUnauth)
+
+    expect(screen.queryByRole('link', { name: 'AI Agentic' })).not.toBeInTheDocument()
   })
 
   it('still renders AI Chat, Courses, and Logout when logged in', () => {

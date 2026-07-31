@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { coursesBase, authHeaders } from '../api/courseApi';
+import { coursesBase, authHeaders, fetchCourseMeta } from '../api/courseApi';
+import './CoursePages.css';
 
 export default function PhaseSections() {
   const { courseId, phaseId } = useParams();
+  const [course, setCourse] = useState(null);
   const [sections, setSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,14 +17,29 @@ export default function PhaseSections() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${coursesBase(isAuthenticated)}/${courseId}/phases/${phaseId}/sections`, {
-          headers: authHeaders(auth)
-        });
-        if (res.ok) {
-          setSections(await res.json());
-        } else if (res.status === 401 || res.status === 403) {
+        /*
+         * Course meta is fetched in parallel with the sections list (same
+         * Promise.all shape as CoursePhases.jsx), but it is best-effort only:
+         * a meta failure must not set `error` or block the section list from
+         * rendering, because the sections response alone is the documented
+         * contract for this page's loading/error state. Only a 200 sets
+         * `course`; any other status silently leaves it null and the course
+         * name line just doesn't render (graceful degradation, not an error).
+         */
+        const [metaResult, sectionsRes] = await Promise.all([
+          fetchCourseMeta(courseId, isAuthenticated, auth),
+          fetch(`${coursesBase(isAuthenticated)}/${courseId}/phases/${phaseId}/sections`, { headers: authHeaders(auth) })
+        ]);
+
+        if (metaResult.status === 200) {
+          setCourse(metaResult.course);
+        }
+
+        if (sectionsRes.ok) {
+          setSections(await sectionsRes.json());
+        } else if (sectionsRes.status === 401 || sectionsRes.status === 403) {
           setError('Session expired. Please log in again.');
-        } else if (res.status === 404) {
+        } else if (sectionsRes.status === 404) {
           setError('Phase not found.');
         } else {
           setError('Failed to load sections.');
@@ -37,7 +54,22 @@ export default function PhaseSections() {
   }, [auth?.token, isAuthenticated, courseId, phaseId]);
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+    <div className="course-page">
+      {/*
+        Course context now renders above the nav row (feedback: it should be
+        the first thing a visitor sees, not sandwiched between the nav and
+        the heading), and .course-page-context in CoursePages.css was bumped
+        from a small muted caption to a bold 20px line so it's immediately
+        legible as "here's what course you're in."
+      */}
+      {course && <p className="course-page-context">Course: {course.title}</p>}
+
+      <nav className="course-page-nav" aria-label="Page navigation">
+        <Link to={`/courses/${courseId}`}>← Back to phases</Link>
+        <Link to="/courses">Courses</Link>
+        <Link to="/">Main page</Link>
+      </nav>
+
       <h2>Sections</h2>
 
       {error && (
@@ -47,11 +79,11 @@ export default function PhaseSections() {
       )}
 
       {isLoading ? (
-        <p style={{ color: 'var(--muted)' }}>Loading sections...</p>
+        <p className="course-page-status">Loading sections...</p>
       ) : sections.length === 0 ? (
-        !error && <p style={{ color: 'var(--muted)' }}>No sections available yet.</p>
+        !error && <p className="course-page-status">No sections available yet.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="course-card-list">
           {/*
             title/orderIndex were added to the sections backend model this week.
             orderIndex is 1-based but only unique within a phase, not globally,
@@ -63,15 +95,10 @@ export default function PhaseSections() {
             <Link
               key={section.id}
               to={`/courses/${courseId}/phases/${phaseId}/sections/${section.id}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
+              className="course-card-link"
             >
-              <div style={{
-                padding: '15px',
-                borderRadius: '8px',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface)'
-              }}>
-                <h3 style={{ margin: 0 }}>{section.orderIndex}. {section.title}</h3>
+              <div className="course-card">
+                <h3>{section.orderIndex}. {section.title}</h3>
               </div>
             </Link>
           ))}

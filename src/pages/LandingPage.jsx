@@ -54,19 +54,8 @@ export default function LandingPage() {
       </div>
 
       <p className="hero-secondary-link">
-        <Link to="/courses">Browse the public course</Link>
+        <Link to="/courses">Browse Public Courses</Link>
       </p>
-
-      {/*
-        Single consolidated CTA: previously "Sign in to keep going..." and
-        "New to AhaSpace? Create an account" were two separate copy strings;
-        merging them into one block avoids repeating the sign-in pitch now
-        that the nav bar itself carries no auth links for logged-out users.
-      */}
-      <div className="landing-cta">
-        <Link to="/login" className="btn-primary">Sign In</Link>
-        <Link to="/register" className="btn-secondary">Register</Link>
-      </div>
     </div>
   );
 }

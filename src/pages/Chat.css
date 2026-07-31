@@ -13,6 +13,131 @@
   min-width: 0;
 }
 
+.chat-heading {
+  margin: 0 0 10px;
+}
+
+/*
+ * Same fix as SectionAssistantPanel.css: .chat-message-list's flex: 1
+ * (MessageBubble.css) stretched it to fill the full 80vh .chat-layout
+ * height even with zero messages, leaving a large empty bordered box
+ * between the header and the input. Scoped to .chat-main (this page's own
+ * wrapper, distinct from .section-assistant-main) so the two chat surfaces
+ * can be tuned independently even though the fix itself is identical.
+ */
+.chat-main .chat-message-list {
+  flex: 0 1 auto;
+  min-height: 80px;
+  max-height: 60vh;
+}
+
+.chat-main .assistant-empty-state {
+  text-align: center;
+  color: var(--muted);
+  margin: 20px 0;
+}
+
+/*
+ * Ask box, shared visual pattern with SectionAssistantPanel.css's
+ * .assistant-ask-* rules (bordered container, in-box label + rule, large
+ * placeholder, pill button, fade-in caption). Duplicated here rather than
+ * imported from the component's stylesheet - Chat.jsx is a page, not a
+ * consumer of SectionAssistantPanel, and the two surfaces are independent
+ * enough (different endpoints, different session scope) that coupling their
+ * CSS across a page/component boundary isn't worth it for one shared block.
+ */
+.assistant-ask-box {
+  border: 1.5px solid var(--accent);
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: var(--surface);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.assistant-ask-box:focus-within {
+  box-shadow: 0 0 0 4px var(--accent-bg);
+}
+
+.assistant-ask-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .04em;
+}
+
+.assistant-ask-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--accent);
+}
+
+.assistant-ask-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.assistant-ask-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  font-size: 18px;
+  color: var(--text-h);
+  outline: none;
+}
+
+.assistant-ask-input::placeholder {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.assistant-ask-button {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.assistant-ask-button:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.assistant-ask-button:not(:disabled):hover {
+  background: var(--accent-hover);
+}
+
+.assistant-ask-caption {
+  margin: 8px 4px 0;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: left;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.assistant-ask-caption.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-ask-caption {
+    transition: none;
+  }
+}
+
 @media (max-width: 768px) {
   .chat-layout {
     height: 85vh;

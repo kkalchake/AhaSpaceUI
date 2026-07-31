@@ -75,4 +75,49 @@ describe('CourseList Component', () => {
       expect(screen.getByText('No public courses available yet. Sign in to see more.')).toBeInTheDocument()
     })
   })
+
+  it('renders the sign-in gate notice as a standalone callout below the course list, with Sign in and Register', async () => {
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve(COURSES) }))
+    global.fetch = fetchMock
+
+    renderWithAuth(mockUnauth)
+
+    await waitFor(() => {
+      expect(screen.getByText('AI Engineering From Scratch')).toBeInTheDocument()
+    })
+
+    const notice = screen.getByText('Sign in to see the full course catalog.').closest('.course-page-notice')
+    expect(notice).toBeInTheDocument()
+    expect(notice.closest('.course-card-list')).toBeNull()
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('link', { name: 'Register' })).toHaveAttribute('href', '/register')
+  })
+
+  it('lists AI Agentic: Self Learning as the second course, linking to /agentic-learning', async () => {
+    const fetchMock = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve(COURSES) }))
+    global.fetch = fetchMock
+
+    renderWithAuth(mockUnauth)
+
+    await waitFor(() => {
+      expect(screen.getByText('AI Engineering From Scratch')).toBeInTheDocument()
+    })
+
+    const cards = screen.getAllByRole('link').filter((link) => link.className.includes('course-card-link'))
+    expect(cards).toHaveLength(2)
+    expect(cards[0]).toHaveTextContent('AI Engineering From Scratch')
+    expect(cards[1]).toHaveTextContent('AI Agentic: Self Learning')
+    expect(cards[1]).toHaveAttribute('href', '/agentic-learning')
+  })
+
+  it('shows AI Agentic: Self Learning even when the real catalog is empty', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve([]) }))
+
+    renderWithAuth(mockUnauth)
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /AI Agentic: Self Learning/ })).toHaveAttribute('href', '/agentic-learning')
+    })
+    expect(screen.getByText('No public courses available yet. Sign in to see more.')).toBeInTheDocument()
+  })
 })

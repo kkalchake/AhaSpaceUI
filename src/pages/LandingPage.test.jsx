@@ -27,23 +27,16 @@ const renderWithAuth = (authValue) => {
 }
 
 describe('LandingPage Component - unauthenticated', () => {
-  it('renders exactly one Sign In link, as the primary action', () => {
+  it('renders no Sign In link in the page body (nav bar carries it now)', () => {
     renderWithAuth(mockUnauth)
 
-    const signInLinks = screen.getAllByRole('link', { name: 'Sign In' })
-    expect(signInLinks).toHaveLength(1)
-    expect(signInLinks[0]).toHaveClass('btn-primary')
-    expect(signInLinks[0]).toHaveAttribute('href', '/login')
+    expect(screen.queryByRole('link', { name: 'Sign In' })).not.toBeInTheDocument()
   })
 
-  it('renders exactly one Register link, as the secondary action', () => {
+  it('renders no Register link in the page body (nav bar carries it now)', () => {
     renderWithAuth(mockUnauth)
 
-    const registerLinks = screen.getAllByRole('link', { name: 'Register' })
-    expect(registerLinks).toHaveLength(1)
-    expect(registerLinks[0]).toHaveClass('btn-secondary')
-    expect(registerLinks[0]).not.toHaveClass('btn-primary')
-    expect(registerLinks[0]).toHaveAttribute('href', '/register')
+    expect(screen.queryByRole('link', { name: 'Register' })).not.toBeInTheDocument()
   })
 
   it('does not duplicate the old two-copy-string sign-in pitch', () => {
@@ -54,10 +47,10 @@ describe('LandingPage Component - unauthenticated', () => {
     expect(screen.queryByText(/create an account/i)).not.toBeInTheDocument()
   })
 
-  it('renders a link to browse the public course', () => {
+  it('renders a link to browse public courses', () => {
     renderWithAuth(mockUnauth)
 
-    const browseLink = screen.getByRole('link', { name: /browse the public course/i })
+    const browseLink = screen.getByRole('link', { name: /browse public courses/i })
     expect(browseLink).toHaveAttribute('href', '/courses')
   })
 })
