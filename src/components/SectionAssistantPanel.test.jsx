@@ -11,12 +11,27 @@ const mockAuth = {
   isAuthenticated: true
 }
 
+const mockUnauth = {
+  auth: null,
+  isAuthenticated: false
+}
+
 const BASE = `${API_BASE_URL}/api/courses/1/phases/3/sections/2/chat`
 
 const renderWithAuth = (component) => {
   return render(
     <BrowserRouter>
       <AuthContext.Provider value={mockAuth}>
+        {component}
+      </AuthContext.Provider>
+    </BrowserRouter>
+  )
+}
+
+const renderWithProvider = (component, authValue) => {
+  return render(
+    <BrowserRouter>
+      <AuthContext.Provider value={authValue}>
         {component}
       </AuthContext.Provider>
     </BrowserRouter>
@@ -217,5 +232,40 @@ describe('SectionAssistantPanel Component', () => {
 
     expect(screen.getByRole('button', { name: /sending/i })).toBeInTheDocument()
     expect(screen.getByText(/thinking/i)).toBeInTheDocument()
+  })
+})
+
+describe('SectionAssistantPanel Component - unauthenticated', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    global.fetch = vi.fn()
+  })
+
+  it('fires zero fetch calls on mount', () => {
+    renderWithProvider(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />, mockUnauth)
+
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it('does not render ChatToolbar', () => {
+    renderWithProvider(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />, mockUnauth)
+
+    expect(screen.queryByText('+ New Chat')).not.toBeInTheDocument()
+  })
+
+  it('fires zero fetch calls on submit and opens the sign-in prompt instead, preserving input text', () => {
+    renderWithProvider(<SectionAssistantPanel courseId={1} phaseId={3} sectionId={2} />, mockUnauth)
+
+    const input = screen.getByPlaceholderText('Type your message...')
+    const sendButton = screen.getByRole('button', { name: /send/i })
+
+    fireEvent.change(input, { target: { value: 'What is this section about?' } })
+    fireEvent.click(sendButton)
+
+    expect(global.fetch).not.toHaveBeenCalled()
+    // No optimistic user message should have been appended to the message list.
+    expect(screen.queryByText('What is this section about?')).not.toBeInTheDocument()
+    expect(input).toHaveValue('What is this section about?')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })

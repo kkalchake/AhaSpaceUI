@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../config';
+import { coursesBase, authHeaders } from '../api/courseApi';
 
 export default function CourseList() {
   const [courses, setCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { auth } = useAuth();
+  const { auth, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const loadCourses = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/courses`, {
-          headers: { 'Authorization': `Bearer ${auth.token}` }
+        const res = await fetch(coursesBase(isAuthenticated), {
+          headers: authHeaders(auth)
         });
         if (res.ok) {
           setCourses(await res.json());
@@ -31,11 +31,20 @@ export default function CourseList() {
       }
     };
     loadCourses();
-  }, [auth.token]);
+  }, [auth?.token, isAuthenticated]);
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <h2>Courses</h2>
+      {isAuthenticated ? (
+        <h2>Courses</h2>
+      ) : (
+        <>
+          <h2>Public courses</h2>
+          <p style={{ marginTop: '-8px', color: 'var(--muted)' }}>
+            Sign in to see the full course catalog.
+          </p>
+        </>
+      )}
 
       {error && (
         <div className="error-banner" style={{ marginBottom: '10px' }}>
@@ -46,7 +55,11 @@ export default function CourseList() {
       {isLoading ? (
         <p style={{ color: 'var(--muted)' }}>Loading courses...</p>
       ) : courses.length === 0 ? (
-        !error && <p style={{ color: 'var(--muted)' }}>No courses available yet.</p>
+        !error && (
+          <p style={{ color: 'var(--muted)' }}>
+            {isAuthenticated ? 'No courses available yet.' : 'No public courses available yet. Sign in to see more.'}
+          </p>
+        )
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {courses.map(course => (

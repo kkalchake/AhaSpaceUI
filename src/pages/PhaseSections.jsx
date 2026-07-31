@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL } from '../config';
+import { coursesBase, authHeaders } from '../api/courseApi';
 
 export default function PhaseSections() {
   const { courseId, phaseId } = useParams();
   const [sections, setSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { auth } = useAuth();
+  const { auth, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const loadSections = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/courses/${courseId}/phases/${phaseId}/sections`, {
-          headers: { 'Authorization': `Bearer ${auth.token}` }
+        const res = await fetch(`${coursesBase(isAuthenticated)}/${courseId}/phases/${phaseId}/sections`, {
+          headers: authHeaders(auth)
         });
         if (res.ok) {
           setSections(await res.json());
@@ -34,7 +34,7 @@ export default function PhaseSections() {
       }
     };
     loadSections();
-  }, [auth.token, courseId, phaseId]);
+  }, [auth?.token, isAuthenticated, courseId, phaseId]);
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>

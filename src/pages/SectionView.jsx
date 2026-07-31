@@ -6,7 +6,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { useAuth } from '../context/AuthContext';
 import SectionAssistantPanel from '../components/SectionAssistantPanel';
-import { API_BASE_URL } from '../config';
+import { coursesBase, authHeaders } from '../api/courseApi';
 import './SectionView.css';
 
 const SPLIT_STORAGE_KEY = 'sectionview-split-ratio';
@@ -33,7 +33,7 @@ export default function SectionView() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSectionListOpen, setIsSectionListOpen] = useState(false);
-  const { auth } = useAuth();
+  const { auth, isAuthenticated } = useAuth();
   const sectionListRef = useRef(null);
 
   // Click-outside-to-close: only listens while the panel is open, matching
@@ -132,8 +132,8 @@ export default function SectionView() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/courses/${courseId}/phases/${phaseId}/sections`, {
-          headers: { 'Authorization': `Bearer ${auth.token}` }
+        const res = await fetch(`${coursesBase(isAuthenticated)}/${courseId}/phases/${phaseId}/sections`, {
+          headers: authHeaders(auth)
         });
         if (res.ok) {
           const sections = await res.json();
@@ -158,7 +158,7 @@ export default function SectionView() {
       }
     };
     loadSection();
-  }, [auth.token, courseId, phaseId, sectionId]);
+  }, [auth?.token, isAuthenticated, courseId, phaseId, sectionId]);
 
   const currentIndex = section ? allSections.findIndex(s => s.id === section.id) : -1;
   const prevSection = currentIndex > 0 ? allSections[currentIndex - 1] : null;

@@ -1,5 +1,7 @@
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Chat from './pages/Chat';
@@ -11,42 +13,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 import NavBar from './components/NavBar';
 import './pages/Auth.css';
 
-function Home() {
-  const navigate = useNavigate();
-  const { isAuthenticated, auth, logout } = useAuth();
-
-  return (
-    <div className="auth-page">
-      <h1 className="welcome-heading">Welcome to AhaSpace</h1>
-
-      {isAuthenticated ? (
-        <div className="auth-hero">
-          <p className="hero-subtext">Welcome back, {auth?.email}!</p>
-          <div className="hero-actions">
-            <button className="btn-secondary" onClick={() => navigate('/chat')}>AI Chat</button>
-            <button className="btn-secondary" onClick={() => navigate('/courses')}>Courses</button>
-            <button className="btn-secondary" onClick={logout}>Logout</button>
-          </div>
-        </div>
-      ) : (
-        <div className="auth-hero">
-          <p className="hero-subtext">Sign in to keep going, or create an account to get started.</p>
-          <Link to="/login" className="btn-primary">Sign In</Link>
-          <p className="hero-secondary-link">
-            New to AhaSpace? <Link to="/register">Create an account</Link>
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function AppRoutes() {
   return (
     <>
       <NavBar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/chat" element={
@@ -54,26 +26,17 @@ function AppRoutes() {
             <Chat />
           </ProtectedRoute>
         } />
-        <Route path="/courses" element={
-          <ProtectedRoute>
-            <CourseList />
-          </ProtectedRoute>
-        } />
-        <Route path="/courses/:courseId" element={
-          <ProtectedRoute>
-            <CoursePhases />
-          </ProtectedRoute>
-        } />
-        <Route path="/courses/:courseId/phases/:phaseId" element={
-          <ProtectedRoute>
-            <PhaseSections />
-          </ProtectedRoute>
-        } />
-        <Route path="/courses/:courseId/phases/:phaseId/sections/:sectionId" element={
-          <ProtectedRoute>
-            <SectionView />
-          </ProtectedRoute>
-        } />
+        {/*
+          Public demo mode: these four routes now read from
+          /api/public/courses** when logged out and /api/courses** when
+          logged in (see src/api/courseApi.js). ProtectedRoute is removed so
+          logged-out visitors reach the pages at all; each page's own fetch
+          decides what data it's allowed to see.
+        */}
+        <Route path="/courses" element={<CourseList />} />
+        <Route path="/courses/:courseId" element={<CoursePhases />} />
+        <Route path="/courses/:courseId/phases/:phaseId" element={<PhaseSections />} />
+        <Route path="/courses/:courseId/phases/:phaseId/sections/:sectionId" element={<SectionView />} />
       </Routes>
     </>
   );
