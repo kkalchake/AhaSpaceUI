@@ -1,0 +1,27 @@
+/*
+ * Styled after .error-banner (Auth.css l.239) but in the accent palette
+ * rather than the error palette, since this is informational ("still
+ * working"), not a failure. Fixed + bottom-centre + pointer-events: none so
+ * it never blocks interaction with whatever is underneath, and it needs no
+ * dismiss button - it clears itself the instant pendingCount returns to 0.
+ */
+.cold-start-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(90vw, 420px);
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}

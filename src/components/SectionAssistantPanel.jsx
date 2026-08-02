@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAsyncAction } from '../hooks/useAsyncAction';
+import AsyncButton from './AsyncButton';
 import ChatToolbar from './ChatToolbar';
 import MessageBubble, { ThinkingIndicator } from './MessageBubble';
 import SignInPromptModal from './SignInPromptModal';
@@ -20,15 +22,20 @@ import './SectionAssistantPanel.css';
 export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [sessions, setSessions] = useState([]);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [isAskFocused, setIsAskFocused] = useState(false);
   const messagesEndRef = useRef(null);
   const { auth, isAuthenticated } = useAuth();
+  const { isPending: isSending, run: runSend } = useAsyncAction();
+  // Same reasoning as Chat.jsx: initialPending stays false (this panel's
+  // loadSessions effect early-returns for logged-out visitors, so with
+  // initialPending: true the hook would be stranded pending forever for an
+  // entire logged-out mount, since only run() clears it) and guard stays
+  // false (post-delete refresh can legitimately overlap another call).
+  const { isPending: isSessionsPending, run: runSessions } = useAsyncAction({ initialPending: false, guard: false });
 
   const basePath = `${API_BASE_URL}/api/courses/${courseId}/phases/${phaseId}/sections/${sectionId}/chat`;
 
@@ -48,8 +55,7 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, courseId, phaseId, sectionId]);
 
-  const loadSessions = async () => {
-    setSessionsLoading(true);
+  const loadSessions = () => runSessions(async () => {
     try {
       const res = await fetch(`${basePath}/sessions`, {
         headers: { 'Authorization': `Bearer ${auth.token}` }
@@ -59,10 +65,8 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
       }
     } catch (err) {
       // Non-critical: sidebar stays empty if fetch fails
-    } finally {
-      setSessionsLoading(false);
     }
-  };
+  });
 
   const handleSelectSession = async (sessionId) => {
     setError(null);
@@ -121,65 +125,73 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
+    // The `|| isLoading` half of the old guard is now runSend's own
+    // guard: true behavior.
+    if (!inputValue.trim()) return;
 
     /*
      * This is a UX nudge, not a security boundary: it only stops the panel
      * from firing a request that would fail anyway (no token to send).
      * SectionChatController on the backend, unchanged this week, remains
-     * the actual enforcement point for every chat endpoint.
+     * the actual enforcement point for every chat endpoint. Kept outside
+     * runSend so opening the sign-in modal never flips the Ask button into
+     * a pending state.
      */
     if (!isAuthenticated) {
       setShowSignInPrompt(true);
       return;
     }
 
-    const userMessage = {
-      id: Date.now(),
-      role: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date().toISOString()
-    };
+    /*
+     * Same ordering hazard as Chat.jsx: the optimistic append has to live
+     * inside runSend, after the guard, so a blocked duplicate submit neither
+     * appends a ghost user message nor clears the input.
+     */
+    await runSend(async () => {
+      const userMessage = {
+        id: Date.now(),
+        role: 'user',
+        content: inputValue.trim(),
+        timestamp: new Date().toISOString()
+      };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
-    setError(null);
+      setMessages(prev => [...prev, userMessage]);
+      setInputValue('');
+      setError(null);
 
-    try {
-      const response = await fetch(basePath, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        // sessionId tells the backend which session to append to; null creates a new one
-        body: JSON.stringify({ message: userMessage.content, sessionId: activeSessionId })
-      });
+      try {
+        const response = await fetch(basePath, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+          // sessionId tells the backend which session to append to; null creates a new one
+          body: JSON.stringify({ message: userMessage.content, sessionId: activeSessionId })
+        });
 
-      if (response.status === 200) {
-        const data = await response.json();
-        const aiMessage = {
-          id: Date.now() + 1,
-          role: 'assistant',
-          content: data.response,
-          model: data.model,
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, aiMessage]);
-        setActiveSessionId(data.sessionId);
-        loadSessions();
-      } else if (response.status === 401 || response.status === 403) {
-        setError('Session expired. Please log in again.');
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to get AI response');
+        if (response.status === 200) {
+          const data = await response.json();
+          const aiMessage = {
+            id: Date.now() + 1,
+            role: 'assistant',
+            content: data.response,
+            model: data.model,
+            timestamp: new Date().toISOString()
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          setActiveSessionId(data.sessionId);
+          loadSessions();
+        } else if (response.status === 401 || response.status === 403) {
+          setError('Session expired. Please log in again.');
+        } else {
+          const data = await response.json();
+          setError(data.error || 'Failed to get AI response');
+        }
+      } catch (err) {
+        setError('Network error. Please check your connection.');
       }
-    } catch (err) {
-      setError('Network error. Please check your connection.');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // Caption shows on focus OR while there's typed text, so it stays visible
@@ -208,7 +220,7 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
           onSelectSession={handleSelectSession}
           onNewSession={handleNewSession}
           onDeleteSession={handleDeleteSession}
-          isLoading={sessionsLoading}
+          isLoading={isSessionsPending}
         />
       )}
 
@@ -237,7 +249,7 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
               />
             ))
           )}
-          {isLoading && <ThinkingIndicator />}
+          {isSending && <ThinkingIndicator />}
           <div ref={messagesEndRef} />
         </div>
 
@@ -257,15 +269,17 @@ export default function SectionAssistantPanel({ courseId, phaseId, sectionId }) 
                 onBlur={() => setIsAskFocused(false)}
                 placeholder="Ask anything about this section..."
                 aria-label="Ask a question about this section"
-                disabled={isLoading}
+                disabled={isSending}
               />
-              <button
+              <AsyncButton
                 className="assistant-ask-button"
                 type="submit"
-                disabled={isLoading || !inputValue.trim()}
+                isPending={isSending}
+                pendingLabel="Sending…"
+                disabled={!inputValue.trim()}
               >
-                <span aria-hidden="true">✨</span> {isLoading ? 'Sending...' : 'Ask'}
-              </button>
+                <span aria-hidden="true">✨</span> Ask
+              </AsyncButton>
             </div>
           </div>
           <p className={`assistant-ask-caption${captionVisible ? ' visible' : ''}`}>

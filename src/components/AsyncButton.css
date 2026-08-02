@@ -1,0 +1,16 @@
+/*
+ * Deliberately minimal: color/size/layout stay with whatever class the
+ * caller passes through `rest.className` (.btn-primary, .assistant-ask-button,
+ * etc.) - this file only adds the pending-specific affordances so it can't
+ * fight with either caller's existing styling.
+ */
+.async-button[aria-busy="true"] {
+  cursor: progress;
+  opacity: 0.8;
+}
+
+button.async-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

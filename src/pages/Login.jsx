@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAsyncAction } from '../hooks/useAsyncAction';
+import AsyncButton from '../components/AsyncButton';
 import { API_BASE_URL } from '../config';
 import './Auth.css';
 
@@ -26,6 +28,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const { isPending, run } = useAsyncAction();
 
   useEffect(() => {
     if (location.state?.message) {
@@ -61,30 +64,32 @@ export default function Login() {
       return;
     }
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, password: formData.password })
-      });
+    await run(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email, password: formData.password })
+        });
 
-      if (response.status === 200) {
-        const data = await response.json();
-        login(data.token, data.email);
-        navigate('/');
-      } else if (response.status === 401) {
-        // Stay on the password step and keep formData intact so the user
-        // isn't forced to retype the email; only the generic form-level
-        // error is shown (see formError comment above).
-        setFormError('Invalid email or password');
-        setShake(true);
-      } else if (response.status === 400) {
-        const data = await response.json();
-        setErrors(data);
+        if (response.status === 200) {
+          const data = await response.json();
+          login(data.token, data.email);
+          navigate('/');
+        } else if (response.status === 401) {
+          // Stay on the password step and keep formData intact so the user
+          // isn't forced to retype the email; only the generic form-level
+          // error is shown (see formError comment above).
+          setFormError('Invalid email or password');
+          setShake(true);
+        } else if (response.status === 400) {
+          const data = await response.json();
+          setErrors(data);
+        }
+      } catch (error) {
+        setErrors({ global: 'Server is unreachable. Is Spring Boot running?' });
       }
-    } catch (error) {
-      setErrors({ global: 'Server is unreachable. Is Spring Boot running?' });
-    }
+    });
   };
 
   return (
@@ -125,7 +130,14 @@ export default function Login() {
             </div>
           )}
 
-          <button type="submit" className="btn-primary">{step === 'email' ? 'Continue' : 'Sign In'}</button>
+          <AsyncButton
+            className="btn-primary"
+            type="submit"
+            isPending={isPending}
+            pendingLabel="Signing in…"
+          >
+            {step === 'email' ? 'Continue' : 'Sign In'}
+          </AsyncButton>
         </form>
 
         {formError && <p className="form-error">{formError}</p>}
