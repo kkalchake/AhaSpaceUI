@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAsyncAction } from '../hooks/useAsyncAction';
+import { LoadingState } from '../components/Spinner';
 import { coursesBase, authHeaders, fetchCourseMeta } from '../api/courseApi';
 import './CoursePages.css';
 import './CoursePhases.css';
@@ -9,13 +11,15 @@ export default function CoursePhases() {
   const { courseId } = useParams();
   const [course, setCourse] = useState(null);
   const [phases, setPhases] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { auth, isAuthenticated } = useAuth();
+  // guard: false - courseId can change (route nav) while a previous fetch is
+  // still in flight; guarding here would drop the newer request instead of
+  // letting it supersede the stale one.
+  const { isPending, run } = useAsyncAction({ initialPending: true, guard: false });
 
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
+    run(async () => {
       setError(null);
       try {
         /*
@@ -43,11 +47,9 @@ export default function CoursePhases() {
         }
       } catch (err) {
         setError('Network error. Please check your connection.');
-      } finally {
-        setIsLoading(false);
       }
-    };
-    load();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth?.token, isAuthenticated, courseId]);
 
   return (
@@ -63,8 +65,8 @@ export default function CoursePhases() {
         </div>
       )}
 
-      {isLoading ? (
-        <p className="course-page-status">Loading phases...</p>
+      {isPending ? (
+        <LoadingState label="Loading phases…" />
       ) : (
         <>
           {course && (

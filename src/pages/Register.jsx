@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAsyncAction } from '../hooks/useAsyncAction';
+import AsyncButton from '../components/AsyncButton';
 import { API_BASE_URL } from '../config';
 import './Auth.css';
 
@@ -11,6 +13,7 @@ export default function Register() {
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
     const { login } = useAuth();
+    const { isPending, run } = useAsyncAction();
 
     const validateForm = () => {
         const newErrors = {};
@@ -32,27 +35,29 @@ export default function Register() {
             return;
         }
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // Only email/password go to the backend; confirmPassword is a
-                // client-side-only check and isn't part of the registration DTO.
-                body: JSON.stringify({ email: formData.email, password: formData.password })
-            });
+        await run(async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // Only email/password go to the backend; confirmPassword is a
+                    // client-side-only check and isn't part of the registration DTO.
+                    body: JSON.stringify({ email: formData.email, password: formData.password })
+                });
 
-            if (response.status === 400 || response.status === 409) {
-                const backendErrors = await response.json();
-                setErrors(backendErrors);
+                if (response.status === 400 || response.status === 409) {
+                    const backendErrors = await response.json();
+                    setErrors(backendErrors);
+                }
+                else if (response.status === 201) {
+                    const data = await response.json();
+                    login(data.token, data.email);
+                    navigate('/');
+                }
+            } catch (error) {
+                setErrors({ global: "Server is unreachable. Is Spring Boot running?" });
             }
-            else if (response.status === 201) {
-                const data = await response.json();
-                login(data.token, data.email);
-                navigate('/');
-            }
-        } catch (error) {
-            setErrors({ global: "Server is unreachable. Is Spring Boot running?" });
-        }
+        });
     };
 
     return (
@@ -93,7 +98,14 @@ export default function Register() {
                         {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
                     </div>
 
-                    <button type="submit" className="btn-primary">Register</button>
+                    <AsyncButton
+                        className="btn-primary"
+                        type="submit"
+                        isPending={isPending}
+                        pendingLabel="Creating account…"
+                    >
+                        Register
+                    </AsyncButton>
                 </form>
 
                 <p style={{ marginTop: '20px', textAlign: 'center' }}>

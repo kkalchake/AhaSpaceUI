@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAsyncAction } from '../hooks/useAsyncAction';
+import CourseListSkeleton from '../components/CourseListSkeleton';
 import { coursesBase, authHeaders } from '../api/courseApi';
 import './CoursePages.css';
 
@@ -21,13 +23,16 @@ const AGENTIC_LEARNING_ENTRY = {
 
 export default function CourseList() {
   const [courses, setCourses] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { auth, isAuthenticated } = useAuth();
+  // guard: false - this instance's preset matches CoursePhases/PhaseSections/
+  // SectionView, not the button preset. If a second effect run (auth state
+  // flips mid-flight) were guarded, the newer fetch would be silently
+  // dropped and the page would keep stale data.
+  const { isPending, run } = useAsyncAction({ initialPending: true, guard: false });
 
   useEffect(() => {
-    const loadCourses = async () => {
-      setIsLoading(true);
+    run(async () => {
       setError(null);
       try {
         const res = await fetch(coursesBase(isAuthenticated), {
@@ -42,11 +47,9 @@ export default function CourseList() {
         }
       } catch (err) {
         setError('Network error. Please check your connection.');
-      } finally {
-        setIsLoading(false);
       }
-    };
-    loadCourses();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth?.token, isAuthenticated]);
 
   // Spliced in at index 1 so it reads as "the second course" whenever a real
@@ -76,14 +79,17 @@ export default function CourseList() {
         </div>
       )}
 
-      {!isLoading && courses.length === 0 && !error && (
+      {!isPending && courses.length === 0 && !error && (
         <p className="course-page-status">
           {isAuthenticated ? 'No courses available yet.' : 'No public courses available yet. Sign in to see more.'}
         </p>
       )}
 
-      {isLoading ? (
-        <p className="course-page-status">Loading courses...</p>
+      {isPending ? (
+        <>
+          <CourseListSkeleton count={3} />
+          <p className="sr-only" role="status">Loading courses…</p>
+        </>
       ) : (
         <div className="course-card-list">
           {displayCourses.map(course => (

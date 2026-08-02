@@ -157,3 +157,22 @@
 .course-page-status {
   color: var(--muted);
 }
+
+/*
+ * Visually-hidden-but-announced utility: used by CourseList's loading status
+ * text, which needs to reach screen readers (role="status") without
+ * duplicating the skeleton's already-visible placeholder cards on screen.
+ * Clip/absolute-position pattern (not display:none) so it stays in the
+ * accessibility tree instead of being removed from it.
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

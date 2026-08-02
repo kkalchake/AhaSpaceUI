@@ -1,0 +1,38 @@
+/* Sized in em so it inherits whatever font-size the surrounding button or
+   status text has, instead of needing a fixed px size re-tuned per caller. */
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 0.15em solid var(--border, #e2e0d5);
+  border-top-color: var(--accent, #4f7a78);
+  border-radius: 50%;
+  animation: spinner-rotate 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted, #6b6d61);
+  padding: 20px 0;
+  font-size: 16px;
+}
+
+.loading-state .spinner {
+  font-size: 20px;
+}

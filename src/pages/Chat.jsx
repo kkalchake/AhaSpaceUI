@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAsyncAction } from '../hooks/useAsyncAction';
+import AsyncButton from '../components/AsyncButton';
 import ChatToolbar from '../components/ChatToolbar';
 import MessageBubble, { ThinkingIndicator } from '../components/MessageBubble';
 import { API_BASE_URL } from '../config';
@@ -9,15 +11,20 @@ import './Chat.css';
 export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   // Track which session is active; null means a new conversation not yet saved to the backend
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [sessions, setSessions] = useState([]);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
   const [isAskFocused, setIsAskFocused] = useState(false);
   const messagesEndRef = useRef(null);
   const { auth } = useAuth();
+  const { isPending: isSending, run: runSend } = useAsyncAction();
+  // initialPending: false (not the route-page preset's true) because
+  // sessionsLoading was already useState(false) today - starting this
+  // pending would flip the history dropdown's first paint to "Loading...".
+  // guard: false because loadSessions has no re-entry guard today either,
+  // and the post-delete refresh legitimately needs to overlap a prior call.
+  const { isPending: isSessionsPending, run: runSessions } = useAsyncAction({ initialPending: false, guard: false });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -27,12 +34,7 @@ export default function Chat() {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    loadSessions();
-  }, []);
-
-  const loadSessions = async () => {
-    setSessionsLoading(true);
+  const loadSessions = () => runSessions(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/api/chat/sessions`, {
         headers: { 'Authorization': `Bearer ${auth.token}` }
@@ -42,10 +44,13 @@ export default function Chat() {
       }
     } catch (err) {
       // Non-critical: sidebar stays empty if fetch fails
-    } finally {
-      setSessionsLoading(false);
     }
-  };
+  });
+
+  useEffect(() => {
+    loadSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelectSession = async (sessionId) => {
     setError(null);
@@ -103,54 +108,64 @@ export default function Chat() {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
+    // The `|| isLoading` half of the old guard is now runSend's own
+    // guard: true behavior - this early-return only covers the empty-input
+    // case, which has to stay outside runSend since it isn't an async
+    // request at all.
+    if (!inputValue.trim()) return;
 
-    const userMessage = {
-      id: Date.now(),
-      role: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date().toISOString()
-    };
+    /*
+     * Everything from here down runs inside runSend so the guard (dropping
+     * a second submit while one is in flight) takes effect BEFORE the
+     * optimistic append below. If the append stayed outside runSend, a fast
+     * duplicate click would push a ghost user message and clear the input a
+     * second time even though the underlying fetch got dropped.
+     */
+    await runSend(async () => {
+      const userMessage = {
+        id: Date.now(),
+        role: 'user',
+        content: inputValue.trim(),
+        timestamp: new Date().toISOString()
+      };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
-    setError(null);
+      setMessages(prev => [...prev, userMessage]);
+      setInputValue('');
+      setError(null);
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        // sessionId tells the backend which session to append to; null creates a new one
-        body: JSON.stringify({ message: userMessage.content, sessionId: activeSessionId })
-      });
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.token}`
+          },
+          // sessionId tells the backend which session to append to; null creates a new one
+          body: JSON.stringify({ message: userMessage.content, sessionId: activeSessionId })
+        });
 
-      if (response.status === 200) {
-        const data = await response.json();
-        const aiMessage = {
-          id: Date.now() + 1,
-          role: 'assistant',
-          content: data.response,
-          model: data.model,
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, aiMessage]);
-        setActiveSessionId(data.sessionId);
-        loadSessions();
-      } else if (response.status === 401 || response.status === 403) {
-        setError('Session expired. Please log in again.');
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Failed to get AI response');
+        if (response.status === 200) {
+          const data = await response.json();
+          const aiMessage = {
+            id: Date.now() + 1,
+            role: 'assistant',
+            content: data.response,
+            model: data.model,
+            timestamp: new Date().toISOString()
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          setActiveSessionId(data.sessionId);
+          loadSessions();
+        } else if (response.status === 401 || response.status === 403) {
+          setError('Session expired. Please log in again.');
+        } else {
+          const data = await response.json();
+          setError(data.error || 'Failed to get AI response');
+        }
+      } catch (err) {
+        setError('Network error. Please check your connection.');
       }
-    } catch (err) {
-      setError('Network error. Please check your connection.');
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // Caption shows on focus OR while there's typed text - same pattern as
@@ -176,7 +191,7 @@ export default function Chat() {
           onSelectSession={handleSelectSession}
           onNewSession={handleNewSession}
           onDeleteSession={handleDeleteSession}
-          isLoading={sessionsLoading}
+          isLoading={isSessionsPending}
         />
 
         {error && (
@@ -204,7 +219,7 @@ export default function Chat() {
               />
             ))
           )}
-          {isLoading && <ThinkingIndicator />}
+          {isSending && <ThinkingIndicator />}
           <div ref={messagesEndRef} />
         </div>
 
@@ -224,15 +239,17 @@ export default function Chat() {
                 onBlur={() => setIsAskFocused(false)}
                 placeholder="Ask anything..."
                 aria-label="Type your message"
-                disabled={isLoading}
+                disabled={isSending}
               />
-              <button
+              <AsyncButton
                 className="assistant-ask-button"
                 type="submit"
-                disabled={isLoading || !inputValue.trim()}
+                isPending={isSending}
+                pendingLabel="Sending…"
+                disabled={!inputValue.trim()}
               >
-                <span aria-hidden="true">✨</span> {isLoading ? 'Sending...' : 'Ask'}
-              </button>
+                <span aria-hidden="true">✨</span> Ask
+              </AsyncButton>
             </div>
           </div>
           <p className={`assistant-ask-caption${captionVisible ? ' visible' : ''}`}>

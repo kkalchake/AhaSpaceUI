@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAsyncAction } from '../hooks/useAsyncAction';
+import { LoadingState } from '../components/Spinner';
 import { coursesBase, authHeaders, fetchCourseMeta } from '../api/courseApi';
 import './CoursePages.css';
 
@@ -8,13 +10,14 @@ export default function PhaseSections() {
   const { courseId, phaseId } = useParams();
   const [course, setCourse] = useState(null);
   const [sections, setSections] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { auth, isAuthenticated } = useAuth();
+  // guard: false - courseId/phaseId change on route nav mid-flight; guarding
+  // would drop the newer fetch and leave stale sections on screen.
+  const { isPending, run } = useAsyncAction({ initialPending: true, guard: false });
 
   useEffect(() => {
-    const loadSections = async () => {
-      setIsLoading(true);
+    run(async () => {
       setError(null);
       try {
         /*
@@ -46,11 +49,9 @@ export default function PhaseSections() {
         }
       } catch (err) {
         setError('Network error. Please check your connection.');
-      } finally {
-        setIsLoading(false);
       }
-    };
-    loadSections();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth?.token, isAuthenticated, courseId, phaseId]);
 
   return (
@@ -78,8 +79,8 @@ export default function PhaseSections() {
         </div>
       )}
 
-      {isLoading ? (
-        <p className="course-page-status">Loading sections...</p>
+      {isPending ? (
+        <LoadingState label="Loading sections…" />
       ) : sections.length === 0 ? (
         !error && <p className="course-page-status">No sections available yet.</p>
       ) : (

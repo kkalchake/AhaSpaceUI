@@ -221,4 +221,49 @@ describe('Chat Component', () => {
     const sendButton = screen.getByRole('button', { name: /ask/i })
     expect(sendButton).toBeDisabled()
   })
+
+  it('appends no second user message and does not clear the input a second time when submitted twice while a send is in flight', async () => {
+    let resolveChat
+    global.fetch = vi.fn((url) => {
+      if (url === SESSIONS_URL) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) })
+      }
+      return new Promise((resolve) => { resolveChat = resolve })
+    })
+
+    renderWithAuth(<Chat />)
+
+    const input = screen.getByPlaceholderText('Ask anything...')
+    const form = input.closest('form')
+
+    fireEvent.change(input, { target: { value: 'First message' } })
+    fireEvent.submit(form)
+
+    // First submit's synchronous work (optimistic append + input clear) has
+    // run; the fetch itself is still unresolved, so isSending is true and
+    // the input is disabled. Typing again and submitting again is the
+    // ordering hazard: without the guard sitting above the optimistic
+    // append, this would push a ghost second user message and re-clear
+    // whatever's in the box.
+    fireEvent.change(input, { target: { value: 'Second message' } })
+    fireEvent.submit(form)
+
+    // Guarded call is dropped synchronously, so no need to waitFor: neither
+    // a second user message nor a cleared input should ever appear.
+    expect(screen.queryByText('Second message')).not.toBeInTheDocument()
+    expect(input).toHaveValue('Second message')
+
+    resolveChat({
+      status: 200,
+      json: () => Promise.resolve({ response: 'AI reply', model: 'gemini-2.0-flash', sessionId: 1, sessionTitle: 'Test' })
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('AI reply')).toBeInTheDocument()
+    })
+    // Still exactly one user message after the response lands, and the
+    // second typed-but-blocked message never got sent or appended.
+    expect(screen.getAllByText('First message')).toHaveLength(1)
+    expect(screen.queryByText('Second message')).not.toBeInTheDocument()
+  })
 })

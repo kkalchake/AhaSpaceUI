@@ -1,6 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { SlowRequestProvider } from './context/SlowRequestContext';
+import ColdStartBanner from './components/ColdStartBanner';
 import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -16,8 +18,9 @@ import './pages/Auth.css';
 
 function AppRoutes() {
   return (
-    <>
+    <SlowRequestProvider>
       <NavBar />
+      <ColdStartBanner />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
@@ -46,7 +49,7 @@ function AppRoutes() {
         */}
         <Route path="/agentic-learning" element={<AgenticLearning />} />
       </Routes>
-    </>
+    </SlowRequestProvider>
   );
 }
 

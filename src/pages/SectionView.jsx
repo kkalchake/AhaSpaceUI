@@ -5,6 +5,8 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { useAuth } from '../context/AuthContext';
+import { useAsyncAction } from '../hooks/useAsyncAction';
+import { LoadingState } from '../components/Spinner';
 import SectionAssistantPanel from '../components/SectionAssistantPanel';
 import { coursesBase, authHeaders } from '../api/courseApi';
 import './SectionView.css';
@@ -30,11 +32,15 @@ export default function SectionView() {
   // prev/next and the "X of Y" indicator can be computed from orderIndex
   // without a second fetch.
   const [allSections, setAllSections] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSectionListOpen, setIsSectionListOpen] = useState(false);
   const { auth, isAuthenticated } = useAuth();
   const sectionListRef = useRef(null);
+  // guard: false is mandatory here - sectionId changes on every prev/next
+  // click while the previous section's fetch may still be in flight. With
+  // the guard on, clicking "Next ->" mid-flight would silently drop the new
+  // fetch and leave the previous section's content on screen.
+  const { isPending, run } = useAsyncAction({ initialPending: true, guard: false });
 
   // Click-outside-to-close: only listens while the panel is open, matching
   // the pattern already used for ChatToolbar's history dropdown.
@@ -128,8 +134,7 @@ export default function SectionView() {
   }, [splitRatio]);
 
   useEffect(() => {
-    const loadSection = async () => {
-      setIsLoading(true);
+    run(async () => {
       setError(null);
       try {
         const res = await fetch(`${coursesBase(isAuthenticated)}/${courseId}/phases/${phaseId}/sections`, {
@@ -153,11 +158,9 @@ export default function SectionView() {
         }
       } catch (err) {
         setError('Network error. Please check your connection.');
-      } finally {
-        setIsLoading(false);
       }
-    };
-    loadSection();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth?.token, isAuthenticated, courseId, phaseId, sectionId]);
 
   const currentIndex = section ? allSections.findIndex(s => s.id === section.id) : -1;
@@ -243,8 +246,8 @@ export default function SectionView() {
             {error}
           </div>
         )}
-        {isLoading ? (
-          <p style={{ color: 'var(--muted)' }}>Loading section...</p>
+        {isPending ? (
+          <LoadingState label="Loading section…" />
         ) : section && (
           <>
             <ChapterNav />
